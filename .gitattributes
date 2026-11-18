@@ -1,0 +1,20 @@
+# Normalización de fin de línea.
+* text=auto eol=lf
+
+# El wrapper de Maven y los guiones se ejecutan en Linux dentro del CI y
+# del contenedor: deben conservar LF aunque se editen en Windows.
+mvnw            text eol=lf
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+
+# Guiones de Windows: CRLF obligatorio.
+mvnw.cmd        text eol=crlf
+*.bat           text eol=crlf
+
+# Binarios.
+*.jar           binary
+*.png           binary
+*.pdf           binary
+*.docx          binary

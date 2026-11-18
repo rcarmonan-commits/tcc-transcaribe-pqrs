@@ -1,0 +1,35 @@
+# --- Configuración de asistentes de IA y material personal: nunca se versiona ---
+.claude/
+.agents/
+.cursorrules
+.clinerules
+CLAUDE.md
+copilot-instructions.md
+.vscode/
+.idea/
+*.local.*
+guion-sustentacion*
+
+# --- Compilación Java / Maven ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+hs_err_pid*.log
+replay_pid*.log
+
+# --- Secretos y entorno ---
+.env
+.env.*
+!.env.ejemplo
+*.pem
+*.key
+credenciales*
+
+# --- Sistema operativo ---
+Thumbs.db
+.DS_Store
+
+# Archivos de bloqueo de Office
+~$*
