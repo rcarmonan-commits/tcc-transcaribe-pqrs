@@ -1,0 +1,20 @@
+# Perfil de producción: todo valor sensible llega por variable de entorno.
+spring:
+  flyway:
+    locations: classpath:db/migration   # sin datos de demostración
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: false
+
+server:
+  forward-headers-strategy: native
+
+springdoc:
+  swagger-ui:
+    enabled: false                      # superficie de ataque reducida
+
+logging:
+  level:
+    root: WARN
+    co.edu.unicartagena.transcaribe.pqrs: INFO

@@ -1,0 +1,21 @@
+# Perfil de desarrollo local. NO usar en despliegues reales.
+spring:
+  flyway:
+    # Además del esquema, carga los datos de demostración.
+    locations: classpath:db/migration,classpath:db/demo
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/transcaribe_pqrs}
+    username: ${DB_USER:transcaribe}
+    password: ${DB_PASSWORD:transcaribe}
+
+logging:
+  level:
+    co.edu.unicartagena.transcaribe.pqrs: DEBUG
+
+pqrs:
+  seguridad:
+    jwt:
+      # Secreto de desarrollo: se sobrescribe por entorno en cualquier otro perfil.
+      secreto: ${JWT_SECRET:desarrollo-local-clave-hs256-de-al-menos-32-bytes}
+    cors:
+      origenes-permitidos: http://localhost:4200,http://localhost:5173
