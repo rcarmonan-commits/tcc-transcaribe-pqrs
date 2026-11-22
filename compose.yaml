@@ -1,0 +1,67 @@
+# =====================================================================
+#  Despliegue local completo: base de datos y servicio.
+#
+#  Puesta en marcha:
+#     cp .env.ejemplo .env     # y cambie los tres valores marcados
+#     docker compose up --build
+#
+#  Ninguna credencial está escrita aquí. Las variables sin valor por
+#  defecto hacen fallar el arranque si faltan, que es preferible a que
+#  el servicio suba con una contraseña conocida.
+# =====================================================================
+
+services:
+
+  base-de-datos:
+    image: postgres:16-alpine
+    container_name: transcaribe-pqrs-bd
+    environment:
+      POSTGRES_DB: ${DB_NOMBRE:?defina DB_NOMBRE en el archivo .env}
+      POSTGRES_USER: ${DB_USUARIO:?defina DB_USUARIO en el archivo .env}
+      POSTGRES_PASSWORD: ${DB_CONTRASENA:?defina DB_CONTRASENA en el archivo .env}
+      TZ: America/Bogota
+    volumes:
+      - datos-postgres:/var/lib/postgresql/data
+    # El puerto solo se publica en la interfaz local: la base de datos no
+    # tiene por qué ser alcanzable desde fuera de la máquina.
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USUARIO} -d ${DB_NOMBRE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  servicio-pqrs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transcaribe-pqrs-api
+    depends_on:
+      base-de-datos:
+        # Espera a que la base responda, no solo a que el contenedor exista.
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${PERFIL:-prod}
+      DB_URL: jdbc:postgresql://base-de-datos:5432/${DB_NOMBRE}
+      DB_USER: ${DB_USUARIO}
+      DB_PASSWORD: ${DB_CONTRASENA}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET con al menos 32 caracteres}
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200}
+      RATE_LIMIT_POR_MINUTO: ${RATE_LIMIT_POR_MINUTO:-60}
+      TZ: America/Bogota
+    ports:
+      - "${PUERTO:-8080}:8080"
+    restart: unless-stopped
+    # Endurecimiento del contenedor: sistema de archivos de solo lectura,
+    # sin posibilidad de escalar privilegios y con /tmp en memoria.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  datos-postgres:
+    name: transcaribe-pqrs-datos
