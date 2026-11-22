@@ -60,13 +60,16 @@ public class ConfiguracionSeguridad {
 
     private final FiltroAutenticacionJwt filtroJwt;
     private final FiltroLimitePeticiones filtroLimite;
+    private final ManejadorAccesoNoAutorizado manejadorRechazos;
     private final PropiedadesSeguridad propiedades;
 
     public ConfiguracionSeguridad(FiltroAutenticacionJwt filtroJwt,
                                   FiltroLimitePeticiones filtroLimite,
+                                  ManejadorAccesoNoAutorizado manejadorRechazos,
                                   PropiedadesSeguridad propiedades) {
         this.filtroJwt = filtroJwt;
         this.filtroLimite = filtroLimite;
+        this.manejadorRechazos = manejadorRechazos;
         this.propiedades = propiedades;
     }
 
@@ -94,6 +97,10 @@ public class ConfiguracionSeguridad {
                     .requestMatchers(HttpMethod.GET, "/api/v1/rutas").permitAll()
                     .requestMatchers("/actuator/**").hasRole("ADMIN")
                     .anyRequest().authenticated())
+            .exceptionHandling(excepciones -> excepciones
+                    // Sin credenciales -> 401; con credenciales insuficientes -> 403.
+                    .authenticationEntryPoint(manejadorRechazos)
+                    .accessDeniedHandler(manejadorRechazos))
             .addFilterBefore(filtroLimite, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(filtroJwt, UsernamePasswordAuthenticationFilter.class);
 
