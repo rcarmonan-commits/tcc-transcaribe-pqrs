@@ -1,18 +1,38 @@
 # Perfil de producción: todo valor sensible llega por variable de entorno.
+#
+# La URL de la base se arma a partir de piezas sueltas porque los servicios
+# gestionados —Render entre ellos— entregan el servidor, el puerto y el nombre
+# de la base en variables separadas, y su cadena de conexión viene en formato
+# postgres:// , que no es una URL JDBC. Aun así se admite DB_URL completa, para
+# no atar el despliegue a un único proveedor.
 spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:transcaribe_pqrs}}
+    hikari:
+      # Los planes gratuitos limitan el número de conexiones simultáneas.
+      maximum-pool-size: ${DB_POOL_MAX:5}
+
   flyway:
     locations: classpath:db/migration   # sin datos de demostración
+
   jpa:
     properties:
       hibernate:
         generate_statistics: false
 
 server:
+  # El servicio corre detrás del balanceador del proveedor: sin esto, las URL
+  # que construye la aplicación saldrían en http y con el puerto interno.
   forward-headers-strategy: native
 
 springdoc:
   swagger-ui:
-    enabled: false                      # superficie de ataque reducida
+    # Desactivada por omisión: un catálogo completo de operaciones publicado
+    # sin necesidad es superficie de ataque regalada. Se habilita de forma
+    # explícita cuando el despliegue es de demostración.
+    enabled: ${SWAGGER_ENABLED:false}
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
 
 logging:
   level:
