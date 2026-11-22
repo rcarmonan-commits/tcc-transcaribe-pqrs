@@ -43,11 +43,14 @@ USER transcaribe
 EXPOSE 8080
 
 ENV SPRING_PROFILES_ACTIVE=prod \
+    PORT=8080 \
     JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom"
 
 # Comprobación de salud: el orquestador necesita distinguir "arrancando"
 # de "arrancado" para no enrutar tráfico a una instancia que aún no sirve.
+# El puerto se lee de la variable porque los proveedores gestionados —Render
+# entre ellos— lo asignan ellos mismos en tiempo de ejecución.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://127.0.0.1:8080/actuator/health || exit 1
+    CMD wget --quiet --tries=1 --spider "http://127.0.0.1:${PORT}/actuator/health" || exit 1
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar aplicacion.jar"]
