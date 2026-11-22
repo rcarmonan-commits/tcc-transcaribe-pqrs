@@ -1,0 +1,798 @@
+{
+  "info": {
+    "name": "Transcaribe — API de PQRS e incidencias",
+    "description": "Colección ejecutable de extremo a extremo del servicio de PQRS de Transcaribe S.A.\n\nEjecútela con el Runner en el orden en que están las carpetas: la autenticación guarda el testigo en una variable de colección y la radicación guarda el número de radicado, de modo que el resto de peticiones no necesita edición manual.\n\nCada petición lleva aserciones, así que el Runner reporta aprobados y fallidos como una suite de pruebas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "radicado", "value": "", "type": "string" },
+    { "key": "documento", "value": "1047398221", "type": "string" },
+    { "key": "consecutivoIncidencia", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01 - Catálogos (acceso público)",
+      "item": [
+        {
+          "name": "Tipos de solicitud con su plazo legal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/catalogos/tipos-solicitud", "host": ["{{baseUrl}}"], "path": ["api", "v1", "catalogos", "tipos-solicitud"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const tipos = pm.response.json();",
+                  "pm.test('Incluye la petición de documentos con plazo de 10 días', () => {",
+                  "    const documentos = tipos.find(t => t.codigo === 'PETICION_DOCUMENTOS');",
+                  "    pm.expect(documentos.diasHabilesRespuesta).to.eql(10);",
+                  "});",
+                  "pm.test('Publica el fundamento legal', () => {",
+                  "    pm.expect(tipos[0].fundamentoLegal).to.include('Ley 1755');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Categorías temáticas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/catalogos/categorias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "catalogos", "categorias"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve al menos una categoría', () => pm.expect(pm.response.json().length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rutas activas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/rutas", "host": ["{{baseUrl}}"], "path": ["api", "v1", "rutas"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Incluye la troncal T100', () => {",
+                  "    pm.expect(pm.response.json().map(r => r.codigo)).to.include('T100');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Radicación ciudadana",
+      "item": [
+        {
+          "name": "Radicar una queja",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"{{documento}}\",\n    \"nombres\": \"Carlos Andrés\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"capacheco@correo.com\",\n    \"telefono\": \"3015558841\"\n  },\n  \"tipoSolicitud\": \"QUEJA\",\n  \"categoria\": \"SERVICIO_RUTA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"La ruta T100 no cumple la frecuencia anunciada\",\n  \"descripcion\": \"El bus de la ruta T100 pasó con cuarenta minutos de retraso en hora pico, con la estación llena.\",\n  \"codigoRuta\": \"T100\",\n  \"placaVehiculo\": \"UXT101\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Devuelve la cabecera Location', () => pm.response.to.have.header('Location'));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('radicado', cuerpo.radicado);",
+                  "pm.test('El radicado tiene el formato institucional', () => {",
+                  "    pm.expect(cuerpo.radicado).to.match(/^TC-\\d{4}-\\d{6}$/);",
+                  "});",
+                  "pm.test('Nace en estado RADICADA', () => pm.expect(cuerpo.estado).to.eql('RADICADA'));",
+                  "pm.test('El servidor calculó la fecha de vencimiento', () => {",
+                  "    pm.expect(cuerpo.fechaVencimiento).to.not.be.empty;",
+                  "});",
+                  "pm.test('El servidor asignó la prioridad', () => {",
+                  "    pm.expect(['BAJA','MEDIA','ALTA','CRITICA']).to.include(cuerpo.prioridad);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Radicar una denuncia de seguridad (prioridad elevada)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"45512903\",\n    \"nombres\": \"Yulieth\",\n    \"apellidos\": \"Marrugo\",\n    \"correo\": \"ymarrugo@correo.com\",\n    \"telefono\": \"3204417762\"\n  },\n  \"tipoSolicitud\": \"DENUNCIA\",\n  \"categoria\": \"SEGURIDAD\",\n  \"canal\": \"APP_MOVIL\",\n  \"asunto\": \"Hurto dentro de la estación en hora pico\",\n  \"descripcion\": \"Se presentó un hurto dentro de la estación sin presencia de personal de seguridad.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Una denuncia de seguridad entra como CRITICA', () => {",
+                  "    pm.expect(pm.response.json().prioridad).to.eql('CRITICA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Radicación inválida (debe rechazarse)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"XX\",\n    \"numeroDocumento\": \"abc\",\n    \"nombres\": \"\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"no-es-un-correo\"\n  },\n  \"tipoSolicitud\": \"QUEJA\",\n  \"categoria\": \"SERVICIO_RUTA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"corto\",\n  \"descripcion\": \"breve\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.test('Informa el código de validación', () => pm.expect(cuerpo.codigo).to.eql('VALIDACION_FALLIDA'));",
+                  "pm.test('Detalla los campos inválidos', () => pm.expect(Object.keys(cuerpo.detalles).length).to.be.above(0));",
+                  "pm.test('No revela detalles internos', () => {",
+                  "    pm.expect(pm.response.text()).to.not.include('Exception');",
+                  "    pm.expect(pm.response.text()).to.not.include('org.springframework');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Intento de fijar la prioridad desde el cliente (debe rechazarse)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"{{documento}}\",\n    \"nombres\": \"Carlos\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"capacheco@correo.com\"\n  },\n  \"tipoSolicitud\": \"SUGERENCIA\",\n  \"categoria\": \"INFRAESTRUCTURA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"Asunto con longitud suficiente para el API\",\n  \"descripcion\": \"Descripción con longitud suficiente para superar la validación.\",\n  \"prioridad\": \"CRITICA\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400: el contrato no admite campos no declarados', () => pm.response.to.have.status(400));",
+                  "pm.test('Es un error de formato de la petición', () => {",
+                  "    pm.expect(pm.response.json().codigo).to.eql('PETICION_MAL_FORMADA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Consulta ciudadana",
+      "item": [
+        {
+          "name": "Consultar con radicado y documento correctos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/publico/{{radicado}}?documento={{documento}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pqrs", "publico", "{{radicado}}"],
+              "query": [{ "key": "documento", "value": "{{documento}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.test('El documento sale enmascarado', () => {",
+                  "    pm.expect(cuerpo.ciudadano.numeroDocumento).to.match(/^\\*+\\d{4}$/);",
+                  "});",
+                  "pm.test('No expone el teléfono del ciudadano', () => {",
+                  "    pm.expect(cuerpo.ciudadano.telefono).to.be.oneOf([null, undefined]);",
+                  "});",
+                  "pm.test('No expone el identificador interno', () => {",
+                  "    pm.expect(cuerpo.ciudadano.id).to.be.oneOf([null, undefined]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar con documento ajeno (debe rechazarse)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/publico/{{radicado}}?documento=9999999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pqrs", "publico", "{{radicado}}"],
+              "query": [{ "key": "documento", "value": "9999999999" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404: conocer el radicado no basta', () => pm.response.to.have.status(404));",
+                  "pm.test('No confirma que el radicado exista', () => {",
+                  "    pm.expect(pm.response.json().codigo).to.eql('RECURSO_NO_ENCONTRADO');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gestionar sin autenticarse (debe rechazarse)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoDestino\": \"EN_TRAMITE\",\n  \"observacion\": \"Intento sin credenciales\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Indica que falta autenticación', () => {",
+                  "    pm.expect(pm.response.json().codigo).to.eql('NO_AUTENTICADO');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Autenticación",
+      "item": [
+        {
+          "name": "Iniciar sesión como funcionario",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"Transc@ribe2026.Fun\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('token', cuerpo.token);",
+                  "pm.test('Devuelve un testigo Bearer', () => pm.expect(cuerpo.tipo).to.eql('Bearer'));",
+                  "pm.test('Incluye el rol de funcionario', () => pm.expect(cuerpo.roles).to.include('ROLE_FUNCIONARIO'));",
+                  "pm.test('El testigo tiene vigencia limitada', () => pm.expect(cuerpo.expiraEn).to.not.be.empty);",
+                  "pm.test('La respuesta no devuelve la contraseña', () => {",
+                  "    pm.expect(pm.response.text()).to.not.include('contrasena');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Contraseña incorrecta (debe rechazarse)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"contrasena-incorrecta\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('El mensaje no distingue el motivo del fallo', () => {",
+                  "    pm.expect(pm.response.json().mensaje).to.eql('Credenciales inválidas');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuario inexistente (mismo error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"usuario-que-no-existe\",\n  \"contrasena\": \"loQueSea123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Mensaje idéntico al de contraseña incorrecta', () => {",
+                  "    pm.expect(pm.response.json().mensaje).to.eql('Credenciales inválidas');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Gestión de la solicitud",
+      "item": [
+        {
+          "name": "Consultar el detalle completo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('El funcionario sí ve el documento completo', () => {",
+                  "    pm.expect(pm.response.json().ciudadano.numeroDocumento).to.not.include('*');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pasar a trámite",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoDestino\": \"EN_TRAMITE\",\n  \"observacion\": \"Asignada al área de operaciones para verificación en campo\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Queda en trámite', () => pm.expect(pm.response.json().estado).to.eql('EN_TRAMITE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Transición ilegal: volver a RADICADA (debe rechazarse)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estadoDestino\": \"RADICADA\",\n  \"observacion\": \"Intento de marcha atrás no permitido por la máquina de estados\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Es una transición inválida', () => {",
+                  "    pm.expect(pm.response.json().codigo).to.eql('TRANSICION_INVALIDA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar la respuesta de fondo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuesta\": \"Se verificó la programación de la ruta T100 y se reprogramó la frecuencia en hora pico a partir del próximo lunes.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/respuesta", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "respuesta"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.test('Queda resuelta', () => pm.expect(cuerpo.estado).to.eql('RESUELTA'));",
+                  "pm.test('Registra la fecha de respuesta', () => pm.expect(cuerpo.fechaRespuesta).to.not.be.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar la trazabilidad",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/seguimientos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "seguimientos"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const bitacora = pm.response.json();",
+                  "pm.test('Registra las tres transiciones', () => pm.expect(bitacora.length).to.eql(3));",
+                  "pm.test('La primera entrada es la radicación', () => pm.expect(bitacora[0].estadoNuevo).to.eql('RADICADA'));",
+                  "pm.test('Cada entrada tiene autor', () => {",
+                  "    bitacora.forEach(e => pm.expect(e.funcionario).to.not.be.empty);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listado paginado con filtros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs?estado=RESUELTA&tamano=10&ordenarPor=fechaRadicacion&descendente=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pqrs"],
+              "query": [
+                { "key": "estado", "value": "RESUELTA" },
+                { "key": "tamano", "value": "10" },
+                { "key": "ordenarPor", "value": "fechaRadicacion" },
+                { "key": "descendente", "value": "true" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const pagina = pm.response.json();",
+                  "pm.test('Devuelve metadatos de paginación', () => {",
+                  "    pm.expect(pagina).to.have.property('totalPaginas');",
+                  "    pm.expect(pagina).to.have.property('totalElementos');",
+                  "});",
+                  "pm.test('El listado enmascara el documento', () => {",
+                  "    if (pagina.contenido.length > 0) {",
+                  "        pm.expect(pagina.contenido[0].ciudadanoDocumentoEnmascarado).to.include('*');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tamaño de página abusivo (debe recortarse)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs?tamano=100000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pqrs"],
+              "query": [{ "key": "tamano", "value": "100000" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('El tamaño se recorta al máximo permitido', () => {",
+                  "    pm.expect(pm.response.json().tamano).to.eql(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 - Flota e incidencias",
+      "item": [
+        {
+          "name": "Consultar un vehículo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/vehiculos/UXT101", "host": ["{{baseUrl}}"], "path": ["api", "v1", "vehiculos", "UXT101"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Expone la capacidad nominal de su tipo', () => {",
+                  "    pm.expect(pm.response.json().capacidadNominal).to.eql(160);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar una incidencia de flota",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placaVehiculo\": \"UXT101\",\n  \"codigoRuta\": \"T100\",\n  \"tipoIncidencia\": \"RETRASO\",\n  \"descripcion\": \"El vehículo acumuló cuarenta minutos de retraso por congestión en la troncal.\",\n  \"fechaHora\": \"2026-03-04T07:45:00\",\n  \"radicadoAsociado\": \"{{radicado}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/incidencias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "incidencias"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('consecutivoIncidencia', cuerpo.consecutivo);",
+                  "pm.test('Nace reportada', () => pm.expect(cuerpo.estado).to.eql('REPORTADA'));",
+                  "pm.test('Queda vinculada a la solicitud del ciudadano', () => {",
+                  "    pm.expect(cuerpo.radicadoAsociado).to.eql(pm.collectionVariables.get('radicado'));",
+                  "});",
+                  "pm.test('Hereda la prioridad de su tipo', () => pm.expect(cuerpo.prioridad).to.eql('MEDIA'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Incidencia fechada en el futuro (debe rechazarse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placaVehiculo\": \"UXT101\",\n  \"tipoIncidencia\": \"RETRASO\",\n  \"descripcion\": \"Incidencia fechada en un futuro imposible para probar la regla.\",\n  \"fechaHora\": \"2099-01-01T08:00:00\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/incidencias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "incidencias"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Informa la regla incumplida', () => {",
+                  "    pm.expect(pm.response.json().mensaje).to.include('futuro');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tomar la incidencia en atención",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/incidencias/{{consecutivoIncidencia}}/atencion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "incidencias", "{{consecutivoIncidencia}}", "atencion"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pasa a EN_ATENCION', () => pm.expect(pm.response.json().estado).to.eql('EN_ATENCION'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Indicadores",
+      "item": [
+        {
+          "name": "Indicadores del año en curso",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/indicadores", "host": ["{{baseUrl}}"], "path": ["api", "v1", "indicadores"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Un funcionario no accede a los indicadores', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});",
+                  "if (pm.response.code === 403) {",
+                  "    pm.test('El rol FUNCIONARIO no alcanza: hace falta ADMIN o AUDITOR', () => {",
+                  "        pm.expect(pm.response.json().codigo).to.eql('ACCESO_DENEGADO');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Indicadores como administrador",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Transc@ribe2026.Adm\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token', pm.response.json().token);",
+                  "pm.test('El administrador tiene rol ADMIN', () => {",
+                  "    pm.expect(pm.response.json().roles).to.include('ROLE_ADMIN');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Indicadores de oportunidad (con rol ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/indicadores", "host": ["{{baseUrl}}"], "path": ["api", "v1", "indicadores"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const cuerpo = pm.response.json();",
+                  "pm.test('Informa el cumplimiento de oportunidad', () => {",
+                  "    pm.expect(cuerpo.cumplimientoOportunidad).to.be.at.least(0);",
+                  "    pm.expect(cuerpo.cumplimientoOportunidad).to.be.at.most(100);",
+                  "});",
+                  "pm.test('Desglosa el conteo por estado', () => {",
+                  "    pm.expect(cuerpo.porEstado).to.have.property('RESUELTA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
