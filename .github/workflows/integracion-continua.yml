@@ -31,6 +31,18 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # setup-java cachea las dependencias, pero no la distribución de Maven
+      # que descarga el wrapper. Sin esta cache, cada ejecución vuelve a
+      # bajarla del servidor de Apache, que responde 429 cuando hay mucha
+      # demanda y tumba la construcción por un motivo ajeno al código.
+      - name: Cachear la distribución del wrapper de Maven
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/wrapper
+            ~/.mvn/wrapper
+          key: wrapper-maven-${{ hashFiles('.mvn/wrapper/maven-wrapper.properties') }}
+
       - name: Compilar y ejecutar la suite de pruebas
         run: ./mvnw -B verify
 
