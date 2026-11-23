@@ -4,6 +4,7 @@ import co.edu.unicartagena.transcaribe.pqrs.infrastructure.config.PropiedadesSeg
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -73,7 +74,47 @@ public class ConfiguracionSeguridad {
         this.propiedades = propiedades;
     }
 
+    /**
+     * Cadena propia para la documentación del API.
+     *
+     * <p>La política de contenido general es {@code default-src 'none'}, que es
+     * la correcta para un servicio que solo devuelve JSON: el navegador no debe
+     * ejecutar ni cargar nada. Pero Swagger UI <em>es</em> una página web, y con
+     * esa política se queda en blanco: el navegador recibe su HTML y su
+     * JavaScript con código 200 y se niega a ejecutarlos.</p>
+     *
+     * <p>Por eso la documentación lleva su propia política, limitada a sus
+     * rutas: permite recursos del propio origen y los estilos y guiones en
+     * línea que Swagger UI necesita para arrancar. El resto del servicio
+     * conserva la política estricta. Y conviene recordar que en producción la
+     * documentación está desactivada por omisión, así que esta relajación solo
+     * existe donde se ha habilitado a propósito.</p>
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain cadenaDocumentacion(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**")
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(gestion -> gestion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(rutas -> rutas.anyRequest().permitAll())
+            .headers(cabeceras -> cabeceras
+                    .frameOptions(marco -> marco.deny())
+                    .contentTypeOptions(Customizer.withDefaults())
+                    .contentSecurityPolicy(csp -> csp.policyDirectives(
+                            "default-src 'self'; "
+                                    + "script-src 'self' 'unsafe-inline'; "
+                                    + "style-src 'self' 'unsafe-inline'; "
+                                    + "img-src 'self' data:; "
+                                    + "font-src 'self' data:; "
+                                    + "connect-src 'self'; "
+                                    + "frame-ancestors 'none'; base-uri 'none'")));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain cadenaDeFiltros(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
