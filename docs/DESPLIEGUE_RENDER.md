@@ -8,15 +8,38 @@ sin una receta de construcción paralela que pueda divergir en silencio.
 
 ---
 
-## 1. Qué crea el plano
+## 1. Qué crea el plano, y qué no
 
 | Recurso | Nombre | Plan |
 |---|---|---|
-| Base de datos PostgreSQL gestionada | `transcaribe-pqrs-bd` | Free |
 | Servicio web, construido desde el Dockerfile | `transcaribe-pqrs-api` | Free |
 
-Render conecta los dos: las credenciales de la base se inyectan al servicio como variables de
-entorno. **Ninguna credencial se escribe en el repositorio ni queda dentro de la imagen.**
+**El plano no crea la base de datos.** Render admite **una sola base PostgreSQL gratuita por
+cuenta**: si ya hay otra activa, el despliegue falla con
+
+```
+cannot have more than one active free tier database
+```
+
+y cancela el servicio entero.
+
+La salida no es borrar la base que ya existe —puede estar sirviendo a otro proyecto— sino
+**compartirla sin mezclarse**. El servicio crea su propio esquema dentro de ella, declarado en la
+variable `DB_ESQUEMA`, y no ve ni toca las tablas de nadie más:
+
+```
+base compartida
+├── public        <- tablas del otro proyecto, intactas
+└── pqrs          <- las 19 tablas de este servicio + flyway_schema_history
+```
+
+Flyway crea el esquema al arrancar (`create-schemas: true`) e Hibernate valida contra él
+(`default_schema`). Está verificado: con una base que ya tenía tablas en `public`, el servicio
+levantó, creó sus veinte tablas en `pqrs` y dejó `public` sin tocar.
+
+Las credenciales se piden al aplicar el plano, de modo que sirven igual para una base de Render
+que para cualquier PostgreSQL externo. **Ninguna credencial se escribe en el repositorio ni queda
+dentro de la imagen.**
 
 ---
 
@@ -24,15 +47,21 @@ entorno. **Ninguna credencial se escribe en el repositorio ni queda dentro de la
 
 1. Entrar a [dashboard.render.com](https://dashboard.render.com) y autenticarse con la cuenta
    de GitHub que tiene acceso al repositorio.
-2. **New → Blueprint**.
-3. Seleccionar el repositorio `rcarmonan-commits/tcc-transcaribe-pqrs`.
-4. Render detecta `render.yaml` y muestra los dos recursos que va a crear. Confirmar con
-   **Apply**.
-5. Esperar. La primera construcción tarda entre ocho y doce minutos: descarga las dependencias
+2. Abrir la base PostgreSQL que ya exista en la cuenta y, en su pestaña **Connections**, anotar
+   **Hostname**, **Database**, **Username** y **Password**. Si la base está en Render, use el
+   *Internal Database URL*: el host interno no sale a internet.
+3. **New → Blueprint**.
+4. Seleccionar el repositorio `rcarmonan-commits/tcc-transcaribe-pqrs`.
+5. Render detecta `render.yaml` y **pide los cuatro valores** del paso 2: `DB_HOST`, `DB_NAME`,
+   `DB_USER` y `DB_PASSWORD`. Rellenarlos y confirmar con **Apply**.
+
+   Si la base es externa a Render, o se conecta por su host público, poner además
+   `DB_PARAMS` en `?sslmode=require`.
+6. Esperar. La primera construcción tarda entre ocho y doce minutos: descarga las dependencias
    de Maven, compila y arma la imagen en dos etapas.
-6. Cuando el servicio quede en **Live**, copiar la URL que asigna Render
+7. Cuando el servicio quede en **Live**, copiar la URL que asigna Render
    (algo como `https://transcaribe-pqrs-api.onrender.com`).
-7. **Ajustar `CORS_ORIGENES`** con esa URL real, en *Environment* del servicio, y guardar.
+8. **Ajustar `CORS_ORIGENES`** con esa URL real, en *Environment* del servicio, y guardar.
    Render redespliega solo.
 
 ### Comprobación
@@ -62,7 +91,9 @@ mano.
 
 | Variable | Origen | Para qué |
 |---|---|---|
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | `fromDatabase` | Render las toma de la base gestionada |
+| `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | se piden al desplegar | Credenciales de la base que ya existe en la cuenta |
+| `DB_ESQUEMA` | fija: `pqrs` | Espacio de nombres propio dentro de esa base |
+| `DB_PARAMS` | vacía | `?sslmode=require` si la base es externa o se conecta por host público |
 | `JWT_SECRET` | `generateValue: true` | La genera Render. Nadie la ve, ni siquiera quien despliega |
 | `SPRING_PROFILES_ACTIVE` | fija: `prod` | Sin datos de demostración, trazas en WARN |
 | `SWAGGER_ENABLED` | fija: `true` | Habilitada a propósito para que el API pueda explorarse |
@@ -109,6 +140,8 @@ Conviene conocerlas antes de la sustentación, para que nada sorprenda en vivo.
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
+| `cannot have more than one active free tier database` | La cuenta ya tiene una base gratuita | Es lo previsto: este plano no crea base. Use la existente con su propio `DB_ESQUEMA` |
+| Arranca pero no encuentra las tablas | `DB_ESQUEMA` cambió entre despliegues | Flyway creó el esquema anterior; vuelva a poner el mismo valor |
 | El despliegue falla al arrancar y la traza menciona la clave de firma | `JWT_SECRET` no se generó | Verificar que la variable existe en *Environment*; si no, crearla con 48 caracteres aleatorios |
 | Arranca y muere con error de conexión a la base | La base todavía no estaba lista | Render reintenta solo; si persiste, comprobar que ambos recursos están en la misma región |
 | Hibernate se queja de una columna | El esquema y las entidades no coinciden | Revisar que la última migración se aplicó: la tabla `flyway_schema_history` lo dice |
@@ -124,6 +157,7 @@ Si prefiere crear los recursos a mano:
 1. **New → PostgreSQL**, plan Free, región Oregon. Anotar servidor, puerto, base, usuario y
    clave.
 2. **New → Web Service**, conectar el repositorio, *Runtime* **Docker**, rama `main`.
+   (Omita el paso 1 si ya tiene una base: reutilícela con un `DB_ESQUEMA` propio.)
 3. *Health Check Path*: `/actuator/health`.
 4. Añadir a mano las variables de la tabla de la sección 3.
 5. **Create Web Service**.

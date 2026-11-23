@@ -1,27 +1,31 @@
 # =====================================================================
 #  Plano de despliegue en Render (Blueprint).
 #
-#  Levanta dos recursos: una base PostgreSQL gestionada y el servicio web
-#  construido con el MISMO Dockerfile que se usa en local. Eso es lo que
-#  garantiza que lo verificado en la máquina sea lo que se despliega.
+#  Publica el servicio web construido con el MISMO Dockerfile que se usa en
+#  local. Eso es lo que garantiza que lo verificado en la máquina sea lo que
+#  se despliega.
+#
+#  POR QUÉ ESTE PLANO NO CREA LA BASE DE DATOS
+#  -------------------------------------------
+#  Render admite una sola base PostgreSQL gratuita por cuenta. Si ya hay otra
+#  activa, el plano falla con "cannot have more than one active free tier
+#  database" y cancela el servicio entero.
+#
+#  La solución no es borrar la base existente —puede estar sirviendo a otro
+#  proyecto— sino compartirla: el servicio crea su propio esquema dentro de
+#  ella y no ve ni toca las tablas de nadie más. Ese esquema se indica en la
+#  variable DB_ESQUEMA, y Flyway lo crea al arrancar.
+#
+#  Las credenciales se piden al desplegar (sync: false), de modo que sirven
+#  tanto para una base de Render como para cualquier PostgreSQL externo.
 #
 #  Puesta en marcha:
-#    1. En Render:  New  ->  Blueprint  ->  conectar este repositorio.
-#    2. Render lee este archivo y crea los dos recursos.
+#    1. En Render:  New -> Blueprint -> conectar este repositorio.
+#    2. Render pide los valores marcados abajo. Se copian de la pestaña
+#       "Connections" de la base que ya existe.
 #    3. JWT_SECRET se genera solo; no hay que escribirlo en ninguna parte.
 #    4. Al terminar, ajustar CORS_ORIGENES con la URL definitiva del servicio.
-#
-#  Nota sobre los nombres: Render ADOPTA y sobrescribe un servicio existente
-#  que coincida en nombre. Por eso los nombres llevan el prefijo del proyecto.
 # =====================================================================
-
-databases:
-  - name: transcaribe-pqrs-bd
-    databaseName: transcaribe_pqrs
-    user: transcaribe
-    plan: free
-    region: oregon
-    ipAllowList: []          # lista vacía = solo accesible desde la red interna
 
 services:
   - type: web
@@ -42,31 +46,40 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
 
-      # Credenciales inyectadas por Render desde la base gestionada.
-      # No existen en el repositorio ni en la imagen.
+      # --- Conexión a la base ----------------------------------------
+      # Render los pide al aplicar el plano. Se copian del apartado
+      # "Connections" de la base PostgreSQL que ya tenga la cuenta:
+      #   DB_HOST     -> Hostname  (el interno si la base está en Render)
+      #   DB_NAME     -> Database
+      #   DB_USER     -> Username
+      #   DB_PASSWORD -> Password
       - key: DB_HOST
-        fromDatabase:
-          name: transcaribe-pqrs-bd
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: transcaribe-pqrs-bd
-          property: port
+        sync: false
       - key: DB_NAME
-        fromDatabase:
-          name: transcaribe-pqrs-bd
-          property: database
+        sync: false
       - key: DB_USER
-        fromDatabase:
-          name: transcaribe-pqrs-bd
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: transcaribe-pqrs-bd
-          property: password
+        sync: false
+      - key: DB_PORT
+        value: "5432"
 
-      # Clave de firma de los testigos: la genera Render y nadie la ve.
-      # Si alguna vez hay que rotarla, basta con borrar el valor y redesplegar.
+      # Espacio de nombres propio dentro de esa base. Flyway lo crea al
+      # arrancar y ninguna tabla de otra aplicación resulta visible.
+      - key: DB_ESQUEMA
+        value: pqrs
+
+      # Si la base es externa a Render, o se conecta por su host público,
+      # hace falta TLS. Con el host interno de Render, déjese vacío.
+      - key: DB_PARAMS
+        value: ""
+
+      - key: DB_POOL_MAX
+        value: "5"
+
+      # --- Seguridad --------------------------------------------------
+      # La clave de firma la genera Render y nadie llega a verla. Para
+      # rotarla basta con borrar el valor y redesplegar.
       - key: JWT_SECRET
         generateValue: true
 
@@ -77,13 +90,13 @@ services:
       - key: CORS_ORIGENES
         value: https://transcaribe-pqrs-api.onrender.com
 
-      # En el plan gratuito interesa que el docente pueda explorar el API,
-      # así que la interfaz de Swagger se habilita de forma explícita.
-      - key: SWAGGER_ENABLED
-        value: "true"
-
       - key: RATE_LIMIT_POR_MINUTO
         value: "60"
+
+      # --- Entorno de ejecución --------------------------------------
+      # En el plan gratuito interesa que el API pueda explorarse.
+      - key: SWAGGER_ENABLED
+        value: "true"
 
       # El plan gratuito da 512 MB. Se deja margen para el sistema operativo
       # y se usa el recolector serie, que es el que mejor se comporta con
@@ -91,8 +104,19 @@ services:
       - key: JAVA_OPTS
         value: -XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
 
-      - key: DB_POOL_MAX
-        value: "5"
-
       - key: TZ
         value: America/Bogota
+
+# ---------------------------------------------------------------------
+#  Si la cuenta NO tiene todavía una base gratuita, se puede descomentar
+#  este bloque y quitar los cuatro `sync: false` de arriba, sustituyéndolos
+#  por `fromDatabase`. Con base propia, DB_ESQUEMA puede quedarse en `public`.
+#
+#  databases:
+#    - name: transcaribe-pqrs-bd
+#      databaseName: transcaribe_pqrs
+#      user: transcaribe
+#      plan: free
+#      region: oregon
+#      ipAllowList: []
+# ---------------------------------------------------------------------

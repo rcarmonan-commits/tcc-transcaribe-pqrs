@@ -1,23 +1,33 @@
 # Perfil de producción: todo valor sensible llega por variable de entorno.
 #
 # La URL de la base se arma a partir de piezas sueltas porque los servicios
-# gestionados —Render entre ellos— entregan el servidor, el puerto y el nombre
-# de la base en variables separadas, y su cadena de conexión viene en formato
-# postgres:// , que no es una URL JDBC. Aun así se admite DB_URL completa, para
-# no atar el despliegue a un único proveedor.
+# gestionados entregan el servidor, el puerto y el nombre de la base en
+# variables separadas, y su cadena de conexión viene en formato postgres://,
+# que no es una URL JDBC. Aun así se admite DB_URL completa, para no atar el
+# despliegue a un único proveedor.
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:transcaribe_pqrs}}
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:transcaribe_pqrs}${DB_PARAMS:}}
     hikari:
       # Los planes gratuitos limitan el número de conexiones simultáneas.
       maximum-pool-size: ${DB_POOL_MAX:5}
 
   flyway:
     locations: classpath:db/migration   # sin datos de demostración
+    # Todo el esquema del servicio vive bajo un espacio de nombres propio.
+    # Esto permite compartir una instancia de PostgreSQL con otra aplicación
+    # sin que ninguna vea las tablas de la otra, que es justo lo que hace
+    # falta cuando el proveedor solo concede una base gratuita por cuenta.
+    schemas: ${DB_ESQUEMA:public}
+    default-schema: ${DB_ESQUEMA:public}
+    create-schemas: true
 
   jpa:
     properties:
       hibernate:
+        # Hibernate debe buscar en el mismo espacio de nombres que Flyway creó;
+        # si no coincidieran, la validación del esquema fallaría al arrancar.
+        default_schema: ${DB_ESQUEMA:public}
         generate_statistics: false
 
 server:
