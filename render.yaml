@@ -1,0 +1,98 @@
+# =====================================================================
+#  Plano de despliegue en Render (Blueprint).
+#
+#  Levanta dos recursos: una base PostgreSQL gestionada y el servicio web
+#  construido con el MISMO Dockerfile que se usa en local. Eso es lo que
+#  garantiza que lo verificado en la máquina sea lo que se despliega.
+#
+#  Puesta en marcha:
+#    1. En Render:  New  ->  Blueprint  ->  conectar este repositorio.
+#    2. Render lee este archivo y crea los dos recursos.
+#    3. JWT_SECRET se genera solo; no hay que escribirlo en ninguna parte.
+#    4. Al terminar, ajustar CORS_ORIGENES con la URL definitiva del servicio.
+#
+#  Nota sobre los nombres: Render ADOPTA y sobrescribe un servicio existente
+#  que coincida en nombre. Por eso los nombres llevan el prefijo del proyecto.
+# =====================================================================
+
+databases:
+  - name: transcaribe-pqrs-bd
+    databaseName: transcaribe_pqrs
+    user: transcaribe
+    plan: free
+    region: oregon
+    ipAllowList: []          # lista vacía = solo accesible desde la red interna
+
+services:
+  - type: web
+    name: transcaribe-pqrs-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+
+    # Render considera vivo el servicio cuando esta ruta responde 200.
+    # Es pública a propósito: el balanceador no puede autenticarse.
+    healthCheckPath: /actuator/health
+
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+      # Credenciales inyectadas por Render desde la base gestionada.
+      # No existen en el repositorio ni en la imagen.
+      - key: DB_HOST
+        fromDatabase:
+          name: transcaribe-pqrs-bd
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: transcaribe-pqrs-bd
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: transcaribe-pqrs-bd
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: transcaribe-pqrs-bd
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: transcaribe-pqrs-bd
+          property: password
+
+      # Clave de firma de los testigos: la genera Render y nadie la ve.
+      # Si alguna vez hay que rotarla, basta con borrar el valor y redesplegar.
+      - key: JWT_SECRET
+        generateValue: true
+
+      - key: JWT_EXPIRACION_MINUTOS
+        value: "30"
+
+      # Ajustar tras el primer despliegue con la URL real que asigne Render.
+      - key: CORS_ORIGENES
+        value: https://transcaribe-pqrs-api.onrender.com
+
+      # En el plan gratuito interesa que el docente pueda explorar el API,
+      # así que la interfaz de Swagger se habilita de forma explícita.
+      - key: SWAGGER_ENABLED
+        value: "true"
+
+      - key: RATE_LIMIT_POR_MINUTO
+        value: "60"
+
+      # El plan gratuito da 512 MB. Se deja margen para el sistema operativo
+      # y se usa el recolector serie, que es el que mejor se comporta con
+      # poca memoria y un solo núcleo.
+      - key: JAVA_OPTS
+        value: -XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom
+
+      - key: DB_POOL_MAX
+        value: "5"
+
+      - key: TZ
+        value: America/Bogota
