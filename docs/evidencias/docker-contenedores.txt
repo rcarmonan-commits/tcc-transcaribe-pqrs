@@ -1,0 +1,3 @@
+transcaribe-pqrs-api Up About a minute (healthy)
+transcaribe-pqrs-bd Up About a minute (healthy)
+format value "{{.Repository}} {{.Tag}} {{.Size}}" could not be parsed: parsing failed
