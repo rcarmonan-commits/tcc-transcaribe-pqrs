@@ -34,29 +34,43 @@ Rosary Eilyn Carmona Navarro — `rcarmonan@unicartagena.edu.co`
 
 ## Arranque rápido
 
-### Con Docker (recomendado)
+Hay tres formas de levantarlo y las tres aplican **las mismas migraciones de Flyway**. No existe
+un esquema paralelo para desarrollo: si una migración está mal, falla en todas.
+
+| Dónde | Qué hace falta | Base de datos |
+|---|---|---|
+| En la máquina, sin Docker | JDK 21 y nada más | H2 embebida, en un archivo local |
+| En la máquina, con Docker | Docker Desktop | PostgreSQL 16 en contenedor |
+| En Render | una cuenta de Render | PostgreSQL gestionado, en un esquema propio |
+
+### 1. Sin Docker ni PostgreSQL instalado
+
+```bash
+./mvnw -Plocal spring-boot:run
+```
+
+Eso es todo. El perfil `local` levanta el servicio completo sobre una base H2 en modo de
+compatibilidad PostgreSQL, con el esquema real y los datos de demostración. Los datos quedan en
+`datos/pqrs.mv.db` y sobreviven a los reinicios; para empezar de cero, bórrese esa carpeta.
+
+Existe por una razón práctica: una demostración no puede depender de que el demonio de Docker
+arranque en una máquina ajena. H2 **no** sustituye a PostgreSQL para medir nada —la verificación
+que cuenta corre contra PostgreSQL real—, pero sirve para enseñar el sistema funcionando.
+
+El motor H2 no entra en la imagen de producción: el perfil de Maven `local` se limita a arrancar
+con el classpath de pruebas, donde ya estaba.
+
+### 2. Con Docker
 
 ```bash
 cp .env.ejemplo .env     # y cambie los tres valores marcados CAMBIAR
 docker compose up --build
 ```
 
-El servicio queda en `http://localhost:8080`. La base de datos **no** se publica al exterior:
-su puerto se enlaza solo a `127.0.0.1`.
+El servicio queda en `http://localhost:8080` con PostgreSQL 16 real detrás. La base **no** se
+publica al exterior: su puerto se enlaza solo a `127.0.0.1`.
 
-### En Render
-
-El repositorio incluye [`render.yaml`](render.yaml): en Render, **New → Blueprint**, se conecta
-este repositorio y se confirma. Crea la base PostgreSQL gestionada y el servicio web con el
-**mismo Dockerfile** que se usa en local, de modo que lo verificado en la máquina es lo que se
-despliega. La clave de firma se genera sola; ninguna credencial pasa por el repositorio.
-
-Detalle completo, incluidas las limitaciones del plan gratuito, en
-[docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md).
-
-### En la máquina, para desarrollo
-
-Necesita JDK 21 y un PostgreSQL 16 accesible.
+**Variante, contra un PostgreSQL que ya tenga instalado:**
 
 ```bash
 export DB_URL=jdbc:postgresql://localhost:5432/transcaribe_pqrs
@@ -66,8 +80,23 @@ export DB_PASSWORD=<su-contraseña>
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-El perfil `dev` carga además los datos de demostración (rutas, vehículos y tres usuarios).
+Los perfiles `local` y `dev` cargan los datos de demostración (rutas, vehículos y tres usuarios).
 **Nunca se cargan en producción**: viven en una ruta de migración aparte.
+
+### 3. En Render
+
+El repositorio incluye [`render.yaml`](render.yaml): en Render, **New → Blueprint**, se conecta
+este repositorio y se confirma. El plano declara el servicio web y lo construye con el **mismo
+Dockerfile** que se usa en local, de modo que lo verificado en la máquina es lo que se despliega.
+La clave de firma se genera sola; ninguna credencial pasa por el repositorio.
+
+El plano **no** crea la base: Render solo admite una gratuita por cuenta, así que el servicio
+reutiliza la que exista y se instala en un esquema propio dentro de ella (`DB_ESQUEMA`). Pide
+cuatro valores al aplicarlo —`DB_HOST`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`— y, si falta alguno,
+el arranque se detiene diciendo cuál, en vez de intentar conectarse a `localhost`.
+
+Detalle completo, incluidas las limitaciones del plan gratuito, en
+[docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md).
 
 ### Comprobar que arrancó
 

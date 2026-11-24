@@ -1,0 +1,49 @@
+# Perfil local autónomo: ni PostgreSQL instalado, ni Docker, ni red.
+#
+# La base es un archivo H2 en modo de compatibilidad PostgreSQL sobre el que se
+# aplican las MISMAS migraciones de Flyway que en producción, más los datos de
+# demostración. No hay un esquema paralelo para desarrollo: si una migración
+# está mal, aquí también falla.
+#
+# Existe por una razón práctica. Una demostración no puede depender de que el
+# demonio de Docker arranque en una máquina ajena, ni de que haya un PostgreSQL
+# escuchando en el puerto 5432. Con este perfil basta con el JDK.
+#
+#   ./mvnw -Plocal spring-boot:run
+#
+# H2 no es PostgreSQL: el modo de compatibilidad cubre lo que este esquema usa,
+# y la prueba de integración lo ejerce en cada ejecución de la suite, pero la
+# verificación que vale sigue siendo la que corre contra PostgreSQL real, en
+# Docker o en la nube. Este perfil es para enseñar el sistema, no para medirlo.
+#
+# Para empezar de cero, bórrese la carpeta `datos/`.
+spring:
+  datasource:
+    url: jdbc:h2:file:./datos/pqrs;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 5
+
+  flyway:
+    # El esquema real más los datos de demostración, igual que en el perfil dev.
+    locations: classpath:db/migration,classpath:db/demo
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.H2Dialect
+
+logging:
+  level:
+    co.edu.unicartagena.transcaribe.pqrs: DEBUG
+
+pqrs:
+  seguridad:
+    jwt:
+      # Clave de conveniencia para ejecutar en la propia máquina. Cualquier
+      # despliegue real la recibe por entorno y no usa este perfil.
+      secreto: ${JWT_SECRET:clave-local-hs256-sin-docker-de-al-menos-32-bytes}
+    cors:
+      origenes-permitidos: http://localhost:4200,http://localhost:5173

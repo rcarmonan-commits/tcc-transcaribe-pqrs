@@ -303,21 +303,35 @@ openssl rand -base64 48
 
 ### Perfiles
 
-| Perfil | Qué carga |
-|---|---|
-| `dev` | Esquema + catálogos + **datos de demostración**. Swagger activo. Trazas en DEBUG |
-| `test` | H2 en memoria en modo PostgreSQL. Límite de peticiones desactivado |
-| `prod` | Solo esquema y catálogos. Swagger desactivado. Trazas en WARN |
+| Perfil | Base de datos | Qué carga |
+|---|---|---|
+| `local` | H2 en un archivo (`datos/pqrs.mv.db`) | Esquema + catálogos + **datos de demostración**. Sin Docker ni PostgreSQL instalado |
+| `dev` | PostgreSQL en `localhost:5432` | Lo mismo, contra un motor real. Swagger activo, trazas en DEBUG |
+| `test` | H2 en memoria | La suite automatizada. Límite de peticiones desactivado |
+| `prod` | PostgreSQL por variables de entorno | Solo esquema y catálogos. Swagger desactivado, trazas en WARN |
+
+Los cuatro aplican **las mismas migraciones**: no hay un esquema distinto para desarrollar.
+
+El perfil `local` se activa con `./mvnw -Plocal spring-boot:run` y existe para que una
+demostración no dependa de que el demonio de Docker arranque en una máquina ajena. H2 corre en
+modo de compatibilidad PostgreSQL, que cubre lo que este esquema usa, pero **no sustituye al
+motor real para medir nada**: la verificación que cuenta sigue siendo la que corre contra
+PostgreSQL, en Docker o en la nube. Para empezar de cero, bórrese la carpeta `datos/`.
 
 ### Credenciales de demostración
 
-Solo existen en `dev` y `test`:
+Solo existen en `local`, `dev` y `test`:
 
 | Usuario | Contraseña | Rol |
 |---|---|---|
 | `admin` | `Transc@ribe2026.Adm` | ADMIN + FUNCIONARIO |
 | `jlopez` | `Transc@ribe2026.Fun` | FUNCIONARIO |
 | `auditor` | `Transc@ribe2026.Aud` | AUDITOR |
+
+Conviene tener presente el reparto al probar: los indicadores exigen ADMIN **o** AUDITOR, así que
+`jlopez` recibe 403 aunque se haya autenticado correctamente. No es un fallo, es la regla
+funcionando: 401 significa «identifíquese» y 403, «está identificado y aun así no le
+corresponde».
 
 Están en `src/main/resources/db/demo/`, una ruta que el perfil `prod` **no incluye**. Es una
 decisión de seguridad: mantener las cuentas conocidas fuera del camino de migración de

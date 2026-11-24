@@ -33,3 +33,8 @@ Thumbs.db
 
 # Archivos de bloqueo de Office
 ~$*
+
+# --- Base H2 del perfil local (datos de demostración, nunca se versionan) ---
+datos/
+*.mv.db
+*.trace.db

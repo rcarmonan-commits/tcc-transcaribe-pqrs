@@ -157,6 +157,32 @@
   </build>
 
   <profiles>
+    <!-- Ejecución local sin Docker y sin PostgreSQL instalado:
+           mvnw -Plocal spring-boot:run
+
+         El perfil de Spring `local` usa una base H2 embebida. H2 no se declara
+         aquí como dependencia de ejecución a propósito: ya está en el proyecto
+         con alcance de pruebas, así que basta con decirle al complemento que
+         arranque con el classpath de pruebas. De ese modo la imagen de
+         producción sigue sin contener un motor de base de datos que no usa. -->
+    <profile>
+      <id>local</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+              <useTestClasspath>true</useTestClasspath>
+              <profiles>
+                <profile>local</profile>
+              </profiles>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- Análisis de composición de software (OWASP A06:2021).
          Se ejecuta aparte porque descarga la base NVD y requiere clave de API:
          mvnw verify -Pseguridad -Dnvd.api.key=XXXX -->
