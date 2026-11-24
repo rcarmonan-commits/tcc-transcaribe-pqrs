@@ -1,5 +1,9 @@
 # Despliegue en Render
 
+> **Despliegue vigente:** https://transcaribe-pqrs-api.onrender.com
+> · [Documentación del contrato](https://transcaribe-pqrs-api.onrender.com/swagger-ui.html)
+> · [Salud](https://transcaribe-pqrs-api.onrender.com/actuator/health)
+
 Guía para publicar el servicio en Render usando el plano [`render.yaml`](../render.yaml).
 
 El mismo `Dockerfile` que se usa en local con Compose es el que construye Render. Esa es la

@@ -282,18 +282,31 @@ nada al cliente.
 
 ## 6. Puesta en marcha y configuración
 
+### Dónde está desplegado
+
+El servicio está publicado en **https://transcaribe-pqrs-api.onrender.com**, construido desde el mismo Dockerfile que se usa en
+local. La documentación interactiva del contrato queda en `/swagger-ui.html`.
+
+La raíz `/` responde `401` a propósito: no figura entre las rutas públicas. Las que sí lo son
+se listan en el apartado 5.
+
 ### Variables de entorno
 
 | Variable | Obligatoria | Para qué sirve |
 |---|---|---|
-| `DB_URL` | Sí | Cadena JDBC de PostgreSQL |
-| `DB_USER` | Sí | Usuario de la base |
-| `DB_PASSWORD` | Sí | Contraseña |
+| `DATABASE_URL` | Una de las dos vías | Conexión entera en el formato del proveedor: `postgresql://usuario:clave@servidor/base`. El servicio la traduce |
+| `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | La otra vía | Las mismas piezas por separado. Lo definido aquí manda sobre lo derivado de `DATABASE_URL` |
+| `DB_URL` | Alternativa | Cadena JDBC completa, para un proveedor que ya la entregue así |
+| `DB_ESQUEMA` | Recomendada | Espacio de nombres propio dentro de la base. Permite compartir instancia sin mezclar tablas |
 | `JWT_SECRET` | **Sí en producción** | Clave de firma. **Mínimo 32 bytes**: el servicio no arranca si es más corta |
 | `CORS_ORIGENES` | Recomendada | Orígenes permitidos, separados por coma. No se admite `*` |
 | `RATE_LIMIT_POR_MINUTO` | No | Por omisión 60 |
-| `PORT` | No | Por omisión 8080 |
-| `SWAGGER_ENABLED` | No | Desactivado en `prod` |
+| `PORT` | No | Por omisión 8080. En la nube la inyecta el proveedor |
+| `SWAGGER_ENABLED` | No | Desactivado por omisión en `prod`; el despliegue publicado lo activa a propósito, para que el contrato pueda explorarse |
+
+Si faltan las credenciales de la base, el servicio **no arranca**: se detiene nombrando las
+variables que faltan, en lugar de intentar conectarse a `localhost` y fallar con un error de
+red que no dice nada.
 
 Genere la clave de firma con:
 

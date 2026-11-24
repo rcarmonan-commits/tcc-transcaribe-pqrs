@@ -10,8 +10,24 @@ incidencias operativas de la flota.
 > puede decir cuántas vencen esta semana y la traza de lo ocurrido queda repartida entre
 > varias bandejas de correo.
 
+### Servicio publicado
+
+| | |
+|---|---|
+| **API** | https://transcaribe-pqrs-api.onrender.com |
+| **Documentación interactiva** | [https://transcaribe-pqrs-api.onrender.com/swagger-ui.html](https://transcaribe-pqrs-api.onrender.com/swagger-ui.html) |
+| **Salud** | [https://transcaribe-pqrs-api.onrender.com/actuator/health](https://transcaribe-pqrs-api.onrender.com/actuator/health) |
+| **Catálogo con los plazos legales** | [https://transcaribe-pqrs-api.onrender.com/api/v1/catalogos/tipos-solicitud](https://transcaribe-pqrs-api.onrender.com/api/v1/catalogos/tipos-solicitud) |
+
+La raíz `/` responde `401`: no es una ruta pública. Todo lo que no está explícitamente
+abierto exige autenticación, y eso incluye la portada. En el plan gratuito el servicio se
+duerme tras quince minutos sin tráfico, así que la primera petición puede tardar.
+
 **Trabajo Colaborativo Contextualizado** · Ingeniería de Software · Universidad de Cartagena
-Rosary Eilyn Carmona Navarro — `rcarmonan@unicartagena.edu.co`
+
+- Rosary Eilyn Carmona Navarro — `rcarmonan@unicartagena.edu.co`
+- Moisés Daniel Ortega Sánchez — `mortegas4@unicartagena.edu.co`
+- José Luis Arnedo Zambrano — `jarnedoz@unicartagena.edu.co`
 
 ---
 
