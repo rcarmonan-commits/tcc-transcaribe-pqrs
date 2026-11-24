@@ -179,8 +179,10 @@ curl -X PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado \
 ./mvnw verify                      # 162 pruebas + informe de cobertura
 ```
 
+Qué verifica cada nivel, con qué datos y cómo reproducirlo operación por operación: [docs/GUIA_PRUEBAS.md](docs/GUIA_PRUEBAS.md). **Las 22 operaciones del contrato están cubiertas** por la colección de Postman.
+
 La colección de Postman en [`postman/`](postman/) es ejecutable de principio a fin con el
-Runner: 27 peticiones y 73 aserciones. Guarda el testigo y el radicado en variables de
+Runner: 34 peticiones y 95 aserciones. Guarda el testigo y el radicado en variables de
 colección, de modo que no hay que editar nada entre peticiones. No comprueba solo los caminos
 felices: incluye peticiones diseñadas para fallar y verifica que fallan por el motivo correcto.
 

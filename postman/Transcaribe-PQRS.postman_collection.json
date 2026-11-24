@@ -5,11 +5,43 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
-    { "key": "token", "value": "", "type": "string" },
-    { "key": "radicado", "value": "", "type": "string" },
-    { "key": "documento", "value": "1047398221", "type": "string" },
-    { "key": "consecutivoIncidencia", "value": "", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "radicado",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "documento",
+      "value": "1047398221",
+      "type": "string"
+    },
+    {
+      "key": "consecutivoIncidencia",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "rutaNueva",
+      "value": ""
+    },
+    {
+      "key": "placaNueva",
+      "value": ""
+    },
+    {
+      "key": "internoNuevo",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -20,7 +52,18 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/v1/catalogos/tipos-solicitud", "host": ["{{baseUrl}}"], "path": ["api", "v1", "catalogos", "tipos-solicitud"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/tipos-solicitud",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "catalogos",
+                "tipos-solicitud"
+              ]
+            }
           },
           "event": [
             {
@@ -47,7 +90,18 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/v1/catalogos/categorias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "catalogos", "categorias"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "catalogos",
+                "categorias"
+              ]
+            }
           },
           "event": [
             {
@@ -67,7 +121,17 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/api/v1/rutas", "host": ["{{baseUrl}}"], "path": ["api", "v1", "rutas"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rutas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rutas"
+              ]
+            }
           },
           "event": [
             {
@@ -83,6 +147,41 @@
               }
             }
           ]
+        },
+        {
+          "name": "Canales de recepción habilitados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/catalogos/canales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "catalogos",
+                "canales"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const canales = pm.response.json();",
+                  "pm.test('Devuelve el catálogo completo', () => pm.expect(canales).to.be.an('array').that.is.not.empty);",
+                  "pm.test('Incluye el canal web, que es el de la radicación en línea', () => {",
+                  "    pm.expect(canales.map(c => c.codigo)).to.include('WEB');",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -93,12 +192,27 @@
           "name": "Radicar una queja",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"{{documento}}\",\n    \"nombres\": \"Carlos Andrés\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"capacheco@correo.com\",\n    \"telefono\": \"3015558841\"\n  },\n  \"tipoSolicitud\": \"QUEJA\",\n  \"categoria\": \"SERVICIO_RUTA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"La ruta T100 no cumple la frecuencia anunciada\",\n  \"descripcion\": \"El bus de la ruta T100 pasó con cuarenta minutos de retraso en hora pico, con la estación llena.\",\n  \"codigoRuta\": \"T100\",\n  \"placaVehiculo\": \"UXT101\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ]
+            }
           },
           "event": [
             {
@@ -129,12 +243,27 @@
           "name": "Radicar una denuncia de seguridad (prioridad elevada)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"45512903\",\n    \"nombres\": \"Yulieth\",\n    \"apellidos\": \"Marrugo\",\n    \"correo\": \"ymarrugo@correo.com\",\n    \"telefono\": \"3204417762\"\n  },\n  \"tipoSolicitud\": \"DENUNCIA\",\n  \"categoria\": \"SEGURIDAD\",\n  \"canal\": \"APP_MOVIL\",\n  \"asunto\": \"Hurto dentro de la estación en hora pico\",\n  \"descripcion\": \"Se presentó un hurto dentro de la estación sin presencia de personal de seguridad.\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ]
+            }
           },
           "event": [
             {
@@ -155,12 +284,27 @@
           "name": "Radicación inválida (debe rechazarse)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"XX\",\n    \"numeroDocumento\": \"abc\",\n    \"nombres\": \"\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"no-es-un-correo\"\n  },\n  \"tipoSolicitud\": \"QUEJA\",\n  \"categoria\": \"SERVICIO_RUTA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"corto\",\n  \"descripcion\": \"breve\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ]
+            }
           },
           "event": [
             {
@@ -185,12 +329,27 @@
           "name": "Intento de fijar la prioridad desde el cliente (debe rechazarse)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ciudadano\": {\n    \"tipoDocumento\": \"CC\",\n    \"numeroDocumento\": \"{{documento}}\",\n    \"nombres\": \"Carlos\",\n    \"apellidos\": \"Pacheco\",\n    \"correo\": \"capacheco@correo.com\"\n  },\n  \"tipoSolicitud\": \"SUGERENCIA\",\n  \"categoria\": \"INFRAESTRUCTURA\",\n  \"canal\": \"WEB\",\n  \"asunto\": \"Asunto con longitud suficiente para el API\",\n  \"descripcion\": \"Descripción con longitud suficiente para superar la validación.\",\n  \"prioridad\": \"CRITICA\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ]
+            }
           },
           "event": [
             {
@@ -219,9 +378,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/pqrs/publico/{{radicado}}?documento={{documento}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "pqrs", "publico", "{{radicado}}"],
-              "query": [{ "key": "documento", "value": "{{documento}}" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "publico",
+                "{{radicado}}"
+              ],
+              "query": [
+                {
+                  "key": "documento",
+                  "value": "{{documento}}"
+                }
+              ]
             }
           },
           "event": [
@@ -253,9 +425,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/pqrs/publico/{{radicado}}?documento=9999999999",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "pqrs", "publico", "{{radicado}}"],
-              "query": [{ "key": "documento", "value": "9999999999" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "publico",
+                "{{radicado}}"
+              ],
+              "query": [
+                {
+                  "key": "documento",
+                  "value": "9999999999"
+                }
+              ]
             }
           },
           "event": [
@@ -277,15 +462,28 @@
           "name": "Gestionar sin autenticarse (debe rechazarse)",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"estadoDestino\": \"EN_TRAMITE\",\n  \"observacion\": \"Intento sin credenciales\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "estado"
+              ]
             }
           },
           "event": [
@@ -312,12 +510,28 @@
           "name": "Iniciar sesión como funcionario",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"Transc@ribe2026.Fun\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autenticacion",
+                "iniciar-sesion"
+              ]
+            }
           },
           "event": [
             {
@@ -343,12 +557,28 @@
           "name": "Contraseña incorrecta (debe rechazarse)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"contrasena-incorrecta\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autenticacion",
+                "iniciar-sesion"
+              ]
+            }
           },
           "event": [
             {
@@ -369,12 +599,28 @@
           "name": "Usuario inexistente (mismo error)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombreUsuario\": \"usuario-que-no-existe\",\n  \"contrasena\": \"loQueSea123\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autenticacion",
+                "iniciar-sesion"
+              ]
+            }
           },
           "event": [
             {
@@ -400,8 +646,24 @@
           "name": "Consultar el detalle completo",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}"
+              ]
+            }
           },
           "event": [
             {
@@ -423,14 +685,32 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"estadoDestino\": \"EN_TRAMITE\",\n  \"observacion\": \"Asignada al área de operaciones para verificación en campo\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "estado"
+              ]
+            }
           },
           "event": [
             {
@@ -450,14 +730,32 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"estadoDestino\": \"RADICADA\",\n  \"observacion\": \"Intento de marcha atrás no permitido por la máquina de estados\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "estado"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "estado"
+              ]
+            }
           },
           "event": [
             {
@@ -479,14 +777,32 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"respuesta\": \"Se verificó la programación de la ruta T100 y se reprogramó la frecuencia en hora pico a partir del próximo lunes.\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/respuesta", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "respuesta"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/respuesta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "respuesta"
+              ]
+            }
           },
           "event": [
             {
@@ -507,8 +823,25 @@
           "name": "Consultar la trazabilidad",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/seguimientos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pqrs", "{{radicado}}", "seguimientos"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/seguimientos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "seguimientos"
+              ]
+            }
           },
           "event": [
             {
@@ -532,16 +865,39 @@
           "name": "Listado paginado con filtros",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/pqrs?estado=RESUELTA&tamano=10&ordenarPor=fechaRadicacion&descendente=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "pqrs"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ],
               "query": [
-                { "key": "estado", "value": "RESUELTA" },
-                { "key": "tamano", "value": "10" },
-                { "key": "ordenarPor", "value": "fechaRadicacion" },
-                { "key": "descendente", "value": "true" }
+                {
+                  "key": "estado",
+                  "value": "RESUELTA"
+                },
+                {
+                  "key": "tamano",
+                  "value": "10"
+                },
+                {
+                  "key": "ordenarPor",
+                  "value": "fechaRadicacion"
+                },
+                {
+                  "key": "descendente",
+                  "value": "true"
+                }
               ]
             }
           },
@@ -571,12 +927,28 @@
           "name": "Tamaño de página abusivo (debe recortarse)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/pqrs?tamano=100000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "pqrs"],
-              "query": [{ "key": "tamano", "value": "100000" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs"
+              ],
+              "query": [
+                {
+                  "key": "tamano",
+                  "value": "100000"
+                }
+              ]
             }
           },
           "event": [
@@ -603,8 +975,24 @@
           "name": "Consultar un vehículo",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/vehiculos/UXT101", "host": ["{{baseUrl}}"], "path": ["api", "v1", "vehiculos", "UXT101"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vehiculos/UXT101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vehiculos",
+                "UXT101"
+              ]
+            }
           },
           "event": [
             {
@@ -626,14 +1014,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"placaVehiculo\": \"UXT101\",\n  \"codigoRuta\": \"T100\",\n  \"tipoIncidencia\": \"RETRASO\",\n  \"descripcion\": \"El vehículo acumuló cuarenta minutos de retraso por congestión en la troncal.\",\n  \"fechaHora\": \"2026-03-04T07:45:00\",\n  \"radicadoAsociado\": \"{{radicado}}\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/incidencias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "incidencias"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/incidencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incidencias"
+              ]
+            }
           },
           "event": [
             {
@@ -659,14 +1063,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" },
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"placaVehiculo\": \"UXT101\",\n  \"tipoIncidencia\": \"RETRASO\",\n  \"descripcion\": \"Incidencia fechada en un futuro imposible para probar la regla.\",\n  \"fechaHora\": \"2099-01-01T08:00:00\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/incidencias", "host": ["{{baseUrl}}"], "path": ["api", "v1", "incidencias"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/incidencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incidencias"
+              ]
+            }
           },
           "event": [
             {
@@ -687,11 +1107,24 @@
           "name": "Tomar la incidencia en atención",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/v1/incidencias/{{consecutivoIncidencia}}/atencion",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "incidencias", "{{consecutivoIncidencia}}", "atencion"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incidencias",
+                "{{consecutivoIncidencia}}",
+                "atencion"
+              ]
             }
           },
           "event": [
@@ -706,6 +1139,98 @@
               }
             }
           ]
+        },
+        {
+          "name": "Listado de incidencias de un vehículo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/incidencias?placa=UXT101&tamano=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incidencias"
+              ],
+              "query": [
+                {
+                  "key": "placa",
+                  "value": "UXT101"
+                },
+                {
+                  "key": "tamano",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const pagina = pm.response.json();",
+                  "pm.test('Devuelve una página, no una lista suelta', () => {",
+                  "    pm.expect(pagina).to.have.property('totalElementos');",
+                  "    pm.expect(pagina.contenido).to.be.an('array');",
+                  "});",
+                  "pm.test('El filtro por placa se respeta', () => {",
+                  "    pagina.contenido.forEach(i => pm.expect(i.placaVehiculo).to.eql('UXT101'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerrar la incidencia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/incidencias/{{consecutivoIncidencia}}/cierre",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "incidencias",
+                "{{consecutivoIncidencia}}",
+                "cierre"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Queda cerrada', () => pm.expect(pm.response.json().estado).to.eql('CERRADA'));",
+                  "pm.test('Conserva el vínculo con la solicitud del ciudadano', () => {",
+                  "    pm.expect(pm.response.json().radicadoAsociado).to.eql(pm.collectionVariables.get('radicado'));",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -716,8 +1241,23 @@
           "name": "Indicadores del año en curso",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/indicadores", "host": ["{{baseUrl}}"], "path": ["api", "v1", "indicadores"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/indicadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "indicadores"
+              ]
+            }
           },
           "event": [
             {
@@ -742,12 +1282,28 @@
           "name": "Indicadores como administrador",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Transc@ribe2026.Adm\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion", "host": ["{{baseUrl}}"], "path": ["api", "v1", "autenticacion", "iniciar-sesion"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autenticacion",
+                "iniciar-sesion"
+              ]
+            }
           },
           "event": [
             {
@@ -769,8 +1325,23 @@
           "name": "Indicadores de oportunidad (con rol ADMIN)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/v1/indicadores", "host": ["{{baseUrl}}"], "path": ["api", "v1", "indicadores"] }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/indicadores",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "indicadores"
+              ]
+            }
           },
           "event": [
             {
@@ -791,6 +1362,232 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "08 - Administración de la flota (rol ADMIN)",
+      "description": "Estas operaciones exigen rol ADMIN. Se ejecutan después de la carpeta 07, que es la que cambia el testigo al del administrador.",
+      "item": [
+        {
+          "name": "Registrar una ruta nueva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rutas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "rutas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"{{rutaNueva}}\",\n  \"nombre\": \"Troncal de prueba — Bocagrande / Centro\",\n  \"origen\": \"Portal Bocagrande\",\n  \"destino\": \"Estación Centro\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Indica dónde quedó el recurso creado', () => {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/v1/rutas/' + pm.collectionVariables.get('rutaNueva'));",
+                  "});",
+                  "const ruta = pm.response.json();",
+                  "pm.test('Devuelve la ruta con su código', () => pm.expect(ruta.codigo).to.eql(pm.collectionVariables.get('rutaNueva')));",
+                  "pm.test('Nace activa', () => pm.expect(ruta.activa).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vincular un vehículo a la flota",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vehiculos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vehiculos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placa\": \"{{placaNueva}}\",\n  \"numeroInterno\": \"{{internoNuevo}}\",\n  \"tipoVehiculo\": \"ARTICULADO\",\n  \"fechaVinculacion\": \"2026-01-15\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Indica dónde quedó el recurso creado', () => {",
+                  "    pm.expect(pm.response.headers.get('Location')).to.include('/api/v1/vehiculos/' + pm.collectionVariables.get('placaNueva'));",
+                  "});",
+                  "const vehiculo = pm.response.json();",
+                  "pm.test('Devuelve la placa registrada', () => pm.expect(vehiculo.placa).to.eql(pm.collectionVariables.get('placaNueva')));",
+                  "pm.test('Entra operativo y con la capacidad de su tipo', () => {",
+                  "    pm.expect(vehiculo.estadoOperativo).to.eql('OPERATIVO');",
+                  "    pm.expect(vehiculo.capacidadNominal).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listado paginado de la flota",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vehiculos?tamano=50&ordenarPor=placa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vehiculos"
+              ],
+              "query": [
+                {
+                  "key": "tamano",
+                  "value": "50"
+                },
+                {
+                  "key": "ordenarPor",
+                  "value": "placa"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "const pagina = pm.response.json();",
+                  "pm.test('Devuelve una página de vehículos', () => {",
+                  "    pm.expect(pagina.contenido).to.be.an('array').that.is.not.empty;",
+                  "    pm.expect(pagina.totalElementos).to.be.above(0);",
+                  "});",
+                  "pm.test('El vehículo recién vinculado ya figura en la flota', () => {",
+                  "    pm.expect(pagina.contenido.map(v => v.placa)).to.include(pm.collectionVariables.get('placaNueva'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Asignar la solicitud a un funcionario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/asignacion?funcionario=jlopez",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pqrs",
+                "{{radicado}}",
+                "asignacion"
+              ],
+              "query": [
+                {
+                  "key": "funcionario",
+                  "value": "jlopez"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('La solicitud queda a nombre de quien debe responderla', () => {",
+                  "    const asignado = pm.response.json().funcionarioAsignado;",
+                  "    pm.expect(asignado, 'la respuesta trae el nombre del funcionario, no su usuario').to.be.a('string').that.is.not.empty;",
+                  "    pm.expect(asignado).to.include('López');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Un alta no se puede repetir: el codigo de ruta, la placa y el numero",
+              "// interno son unicos en la base. Se derivan del reloj para que la",
+              "// coleccion pueda ejecutarse las veces que haga falta sobre la misma",
+              "// base de datos, y el prefijo TZ/UXZ no colisiona con los datos de",
+              "// demostracion, que usan T100, T101 y placas UXT, UXP y UXA.",
+              "if (!pm.collectionVariables.get('rutaNueva')) {",
+              "    const ahora = Date.now();",
+              "    const tres = String(ahora % 900 + 100);",
+              "    pm.collectionVariables.set('rutaNueva', 'TZ' + (ahora % 100000));",
+              "    pm.collectionVariables.set('placaNueva', 'UXZ' + tres);",
+              "    pm.collectionVariables.set('internoNuevo', String(ahora % 10000000));",
+              "}"
+            ]
+          }
         }
       ]
     }

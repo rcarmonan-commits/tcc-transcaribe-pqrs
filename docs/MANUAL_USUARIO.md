@@ -350,6 +350,10 @@ Están en `src/main/resources/db/demo/`, una ruta que el perfil `prod` **no incl
 decisión de seguridad: mantener las cuentas conocidas fuera del camino de migración de
 producción cierra el riesgo de desplegarlas sin querer.
 
+### Guía de pruebas
+
+Los datos de demostración, la matriz de cobertura de las veintidós operaciones y las pruebas que fallan a propósito están en [GUIA_PRUEBAS.md](GUIA_PRUEBAS.md).
+
 ### Migraciones
 
 El esquema lo gobierna Flyway; Hibernate solo lo valida (`ddl-auto: validate`). Si una entidad

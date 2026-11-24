@@ -53,7 +53,7 @@ newman run postman/Transcaribe-PQRS.postman_collection.json
 El tiempo medio de 61 ms y el máximo de 281 ms cumplen con holgura el requisito RNF-01,
 que exige respuestas por debajo de dos segundos.
 
-La colección no comprueba solo los caminos felices. Entre las 73 aserciones hay
+La colección no comprueba solo los caminos felices. Entre las 95 aserciones hay
 verificaciones de que el sistema **rechaza** lo que debe rechazar:
 
 - radicación con campos inválidos → `400` con el detalle campo a campo;
