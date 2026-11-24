@@ -518,7 +518,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"Transc@ribe2026.Fun\"\n}"
+              "raw": "{\n  \"nombreUsuario\": \"jarnedoz\",\n  \"contrasena\": \"Transc@ribe2026.Fun\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
@@ -565,7 +565,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreUsuario\": \"jlopez\",\n  \"contrasena\": \"contrasena-incorrecta\"\n}"
+              "raw": "{\n  \"nombreUsuario\": \"jarnedoz\",\n  \"contrasena\": \"contrasena-incorrecta\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
@@ -1290,7 +1290,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Transc@ribe2026.Adm\"\n}"
+              "raw": "{\n  \"nombreUsuario\": \"rcarmonan\",\n  \"contrasena\": \"Transc@ribe2026.Adm\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/autenticacion/iniciar-sesion",
@@ -1531,7 +1531,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/asignacion?funcionario=jlopez",
+              "raw": "{{baseUrl}}/api/v1/pqrs/{{radicado}}/asignacion?funcionario=jarnedoz",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1545,7 +1545,7 @@
               "query": [
                 {
                   "key": "funcionario",
-                  "value": "jlopez"
+                  "value": "jarnedoz"
                 }
               ]
             }
@@ -1560,7 +1560,7 @@
                   "pm.test('La solicitud queda a nombre de quien debe responderla', () => {",
                   "    const asignado = pm.response.json().funcionarioAsignado;",
                   "    pm.expect(asignado, 'la respuesta trae el nombre del funcionario, no su usuario').to.be.a('string').that.is.not.empty;",
-                  "    pm.expect(asignado).to.include('López');",
+                  "    pm.expect(asignado).to.include('Arnedo');",
                   "});"
                 ]
               }

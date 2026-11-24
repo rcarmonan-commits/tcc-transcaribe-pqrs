@@ -79,11 +79,14 @@ Viven en `src/main/resources/db/demo/V900__datos_demostracion.sql`, una ruta de 
 
 ### Usuarios
 
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `admin` | `Transc@ribe2026.Adm` | ADMIN + FUNCIONARIO |
-| `jlopez` | `Transc@ribe2026.Fun` | FUNCIONARIO |
-| `auditor` | `Transc@ribe2026.Aud` | AUDITOR |
+Las tres cuentas son las de los integrantes del equipo, con el rol que corresponde a la capa que
+trabajó cada uno. El nombre de usuario es el de su correo institucional.
+
+| Usuario | Persona | Contraseña | Rol |
+|---|---|---|---|
+| `rcarmonan` | Rosary Eilyn Carmona Navarro | `Transc@ribe2026.Adm` | ADMIN + FUNCIONARIO |
+| `jarnedoz` | José Luis Arnedo Zambrano | `Transc@ribe2026.Fun` | FUNCIONARIO |
+| `mortegas4` | Moisés Daniel Ortega Sánchez | `Transc@ribe2026.Aud` | AUDITOR |
 
 ### Flota y rutas
 
@@ -98,7 +101,7 @@ Viven en `src/main/resources/db/demo/V900__datos_demostracion.sql`, una ruta de 
 Mantener cuentas de contraseña conocida fuera del camino de migración de producción cierra el
 riesgo de desplegarlas sin darse cuenta. La contrapartida es que **en el despliegue publicado no
 se puede iniciar sesión** y la colección completa no pasa contra él: sus peticiones de gestión
-necesitan `jlopez` y la ruta `T100`, que allí no existen. El apartado 6 explica qué sí se puede
+necesitan `jarnedoz` y la ruta `T100`, que allí no existen. El apartado 6 explica qué sí se puede
 comprobar en la nube.
 
 ---
@@ -122,7 +125,7 @@ sin testigo, cualquiera de las protegidas responde `401`, y con un testigo de ro
 | `GET /pqrs/publico/{radicado}` | público | Radicado **y** documento correctos | 200; datos enmascarados | 03 |
 | `GET /pqrs/publico/{radicado}` | público | Documento ajeno | 404, el mismo que para un radicado inexistente | 03 |
 | `PATCH /pqrs/{radicado}/estado` | — | Sin testigo | 401, no 403 | 03 |
-| `POST /autenticacion/iniciar-sesion` | público | `jlopez` con su contraseña | 200; testigo JWT y roles | 04 |
+| `POST /autenticacion/iniciar-sesion` | público | `jarnedoz` con su contraseña | 200; testigo JWT y roles | 04 |
 | `POST /autenticacion/iniciar-sesion` | público | Contraseña incorrecta | 401 con mensaje genérico | 04 |
 | `POST /autenticacion/iniciar-sesion` | público | Usuario inexistente | 401, **el mismo mensaje** | 04 |
 | `GET /pqrs/{radicado}` | FUNCIONARIO, ADMIN, AUDITOR | Radicado de la carpeta 02 | 200; detalle completo sin enmascarar | 05 |
@@ -143,7 +146,7 @@ sin testigo, cualquiera de las protegidas responde `401`, y con un testigo de ro
 | `POST /rutas` | ADMIN | Código `TZ…` generado en la ejecución | 201 con cabecera `Location`; nace activa | 08 |
 | `POST /vehiculos` | ADMIN | Placa `UXZ…` articulada | 201 con `Location`; entra `OPERATIVO` con la capacidad de su tipo | 08 |
 | `GET /vehiculos` | FUNCIONARIO, ADMIN, AUDITOR | Página de 50 ordenada por placa | 200; el vehículo recién vinculado ya figura | 08 |
-| `POST /pqrs/{radicado}/asignacion` | ADMIN | `funcionario=jlopez` | 200; la solicitud queda a nombre de quien debe responderla | 08 |
+| `POST /pqrs/{radicado}/asignacion` | ADMIN | `funcionario=jarnedoz` | 200; la solicitud queda a nombre de quien debe responderla | 08 |
 
 ---
 

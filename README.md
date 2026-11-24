@@ -164,7 +164,7 @@ inexistente. Así, probar radicados al azar no revela cuáles existen.
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion \
   -H "Content-Type: application/json" \
-  -d '{"nombreUsuario":"jlopez","contrasena":"Transc@ribe2026.Fun"}' | jq -r .token)
+  -d '{"nombreUsuario":"jarnedoz","contrasena":"Transc@ribe2026.Fun"}' | jq -r .token)
 
 curl -X PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \

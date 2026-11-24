@@ -335,14 +335,17 @@ PostgreSQL, en Docker o en la nube. Para empezar de cero, bórrese la carpeta `d
 
 Solo existen en `local`, `dev` y `test`:
 
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `admin` | `Transc@ribe2026.Adm` | ADMIN + FUNCIONARIO |
-| `jlopez` | `Transc@ribe2026.Fun` | FUNCIONARIO |
-| `auditor` | `Transc@ribe2026.Aud` | AUDITOR |
+Las tres cuentas son las de los integrantes del equipo, con el rol que corresponde a la capa que
+trabajó cada uno. El nombre de usuario es el de su correo institucional.
+
+| Usuario | Persona | Contraseña | Rol |
+|---|---|---|---|
+| `rcarmonan` | Rosary Eilyn Carmona Navarro | `Transc@ribe2026.Adm` | ADMIN + FUNCIONARIO |
+| `jarnedoz` | José Luis Arnedo Zambrano | `Transc@ribe2026.Fun` | FUNCIONARIO |
+| `mortegas4` | Moisés Daniel Ortega Sánchez | `Transc@ribe2026.Aud` | AUDITOR |
 
 Conviene tener presente el reparto al probar: los indicadores exigen ADMIN **o** AUDITOR, así que
-`jlopez` recibe 403 aunque se haya autenticado correctamente. No es un fallo, es la regla
+`jarnedoz` recibe 403 aunque se haya autenticado correctamente. No es un fallo, es la regla
 funcionando: 401 significa «identifíquese» y 403, «está identificado y aun así no le
 corresponde».
 

@@ -1,4 +1,4 @@
-(node:6164) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(node:13608) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
 (Use `node --trace-deprecation ...` to show where the warning was created)
 newman
 
@@ -6,30 +6,30 @@ Transcaribe — API de PQRS e incidencias
 
 □ 01 - Catálogos (acceso público)
 └ Tipos de solicitud con su plazo legal
-  GET http://localhost:8080/api/v1/catalogos/tipos-solicitud [200 OK, 1.45kB, 115ms]
+  GET http://localhost:8080/api/v1/catalogos/tipos-solicitud [200 OK, 1.45kB, 218ms]
   √  Responde 200
   √  Incluye la petición de documentos con plazo de 10 días
   √  Publica el fundamento legal
 
 └ Categorías temáticas
-  GET http://localhost:8080/api/v1/catalogos/categorias [200 OK, 1.2kB, 35ms]
+  GET http://localhost:8080/api/v1/catalogos/categorias [200 OK, 1.2kB, 49ms]
   √  Responde 200
   √  Devuelve al menos una categoría
 
 └ Rutas activas
-  GET http://localhost:8080/api/v1/rutas [200 OK, 1.43kB, 82ms]
+  GET http://localhost:8080/api/v1/rutas [200 OK, 1.43kB, 86ms]
   √  Responde 200
   √  Incluye la troncal T100
 
 └ Canales de recepción habilitados
-  GET http://localhost:8080/api/v1/catalogos/canales [200 OK, 907B, 17ms]
+  GET http://localhost:8080/api/v1/catalogos/canales [200 OK, 907B, 22ms]
   √  Responde 200
   √  Devuelve el catálogo completo
   √  Incluye el canal web, que es el de la radicación en línea
 
 □ 02 - Radicación ciudadana
 └ Radicar una queja
-  POST http://localhost:8080/api/v1/pqrs [201 Created, 1.38kB, 354ms]
+  POST http://localhost:8080/api/v1/pqrs [201 Created, 1.38kB, 414ms]
   √  Responde 201
   √  Devuelve la cabecera Location
   √  El radicado tiene el formato institucional
@@ -38,43 +38,43 @@ Transcaribe — API de PQRS e incidencias
   √  El servidor asignó la prioridad
 
 └ Radicar una denuncia de seguridad (prioridad elevada)
-  POST http://localhost:8080/api/v1/pqrs [201 Created, 1.32kB, 44ms]
+  POST http://localhost:8080/api/v1/pqrs [201 Created, 1.32kB, 50ms]
   √  Responde 201
   √  Una denuncia de seguridad entra como CRITICA
 
 └ Radicación inválida (debe rechazarse)
-  POST http://localhost:8080/api/v1/pqrs [400 Bad Request, 1.14kB, 29ms]
+  POST http://localhost:8080/api/v1/pqrs [400 Bad Request, 1.09kB, 30ms]
   √  Responde 400
   √  Informa el código de validación
   √  Detalla los campos inválidos
   √  No revela detalles internos
 
 └ Intento de fijar la prioridad desde el cliente (debe rechazarse)
-  POST http://localhost:8080/api/v1/pqrs [400 Bad Request, 728B, 34ms]
+  POST http://localhost:8080/api/v1/pqrs [400 Bad Request, 728B, 27ms]
   √  Responde 400: el contrato no admite campos no declarados
   √  Es un error de formato de la petición
 
 □ 03 - Consulta ciudadana
 └ Consultar con radicado y documento correctos
-  GET http://localhost:8080/api/v1/pqrs/publico/TC-2026-000001?documento=1047398221 [200 OK, 1.3kB, 79ms]
+  GET http://localhost:8080/api/v1/pqrs/publico/TC-2026-000001?documento=1047398221 [200 OK, 1.3kB, 70ms]
   √  Responde 200
   √  El documento sale enmascarado
   √  No expone el teléfono del ciudadano
   √  No expone el identificador interno
 
 └ Consultar con documento ajeno (debe rechazarse)
-  GET http://localhost:8080/api/v1/pqrs/publico/TC-2026-000001?documento=9999999999 [404 Not Found, 735B, 37ms]
+  GET http://localhost:8080/api/v1/pqrs/publico/TC-2026-000001?documento=9999999999 [404 Not Found, 735B, 30ms]
   √  Responde 404: conocer el radicado no basta
   √  No confirma que el radicado exista
 
 └ Gestionar sin autenticarse (debe rechazarse)
-  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [401 Unauthorized, 720B, 17ms]
+  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [401 Unauthorized, 721B, 18ms]
   √  Responde 401
   √  Indica que falta autenticación
 
 □ 04 - Autenticación
 └ Iniciar sesión como funcionario
-  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [200 OK, 926B, 377ms]
+  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [200 OK, 945B, 353ms]
   √  Responde 200
   √  Devuelve un testigo Bearer
   √  Incluye el rol de funcionario
@@ -82,110 +82,110 @@ Transcaribe — API de PQRS e incidencias
   √  La respuesta no devuelve la contraseña
 
 └ Contraseña incorrecta (debe rechazarse)
-  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [401 Unauthorized, 710B, 126ms]
+  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [401 Unauthorized, 710B, 129ms]
   √  Responde 401
   √  El mensaje no distingue el motivo del fallo
 
 └ Usuario inexistente (mismo error)
-  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [401 Unauthorized, 710B, 465ms]
+  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [401 Unauthorized, 710B, 429ms]
   √  Responde 401
   √  Mensaje idéntico al de contraseña incorrecta
 
 □ 05 - Gestión de la solicitud
 └ Consultar el detalle completo
-  GET http://localhost:8080/api/v1/pqrs/TC-2026-000001 [200 OK, 1.34kB, 85ms]
+  GET http://localhost:8080/api/v1/pqrs/TC-2026-000001 [200 OK, 1.34kB, 81ms]
   √  Responde 200
   √  El funcionario sí ve el documento completo
 
 └ Pasar a trámite
-  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [200 OK, 1.34kB, 241ms]
+  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [200 OK, 1.34kB, 298ms]
   √  Responde 200
   √  Queda en trámite
 
 └ Transición ilegal: volver a RADICADA (debe rechazarse)
-  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [422 Unprocessable Entity (WebDAV) (RFC 4918), 756B, 32ms]
+  PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado [422 Unprocessable Entity (WebDAV) (RFC 4918), 756B, 60ms]
   √  Responde 422
   √  Es una transición inválida
 
 └ Registrar la respuesta de fondo
-  POST http://localhost:8080/api/v1/pqrs/TC-2026-000001/respuesta [200 OK, 1.52kB, 91ms]
+  POST http://localhost:8080/api/v1/pqrs/TC-2026-000001/respuesta [200 OK, 1.52kB, 66ms]
   √  Responde 200
   √  Queda resuelta
   √  Registra la fecha de respuesta
 
 └ Consultar la trazabilidad
-  GET http://localhost:8080/api/v1/pqrs/TC-2026-000001/seguimientos [200 OK, 1.11kB, 35ms]
+  GET http://localhost:8080/api/v1/pqrs/TC-2026-000001/seguimientos [200 OK, 1.14kB, 41ms]
   √  Responde 200
   √  Registra las tres transiciones
   √  La primera entrada es la radicación
   √  Cada entrada tiene autor
 
 └ Listado paginado con filtros
-  GET http://localhost:8080/api/v1/pqrs?estado=RESUELTA&tamano=10&ordenarPor=fechaRadicacion&descendente=true [200 OK, 1kB, 49ms]
+  GET http://localhost:8080/api/v1/pqrs?estado=RESUELTA&tamano=10&ordenarPor=fechaRadicacion&descendente=true [200 OK, 1kB, 54ms]
   √  Responde 200
   √  Devuelve metadatos de paginación
   √  El listado enmascara el documento
 
 └ Tamaño de página abusivo (debe recortarse)
-  GET http://localhost:8080/api/v1/pqrs?tamano=100000 [200 OK, 1.35kB, 29ms]
+  GET http://localhost:8080/api/v1/pqrs?tamano=100000 [200 OK, 1.35kB, 31ms]
   √  Responde 200
   √  El tamaño se recorta al máximo permitido
 
 □ 06 - Flota e incidencias
 └ Consultar un vehículo
-  GET http://localhost:8080/api/v1/vehiculos/UXT101 [200 OK, 731B, 21ms]
+  GET http://localhost:8080/api/v1/vehiculos/UXT101 [200 OK, 731B, 17ms]
   √  Responde 200
   √  Expone la capacidad nominal de su tipo
 
 └ Registrar una incidencia de flota
-  POST http://localhost:8080/api/v1/incidencias [201 Created, 951B, 77ms]
+  POST http://localhost:8080/api/v1/incidencias [201 Created, 951B, 95ms]
   √  Responde 201
   √  Nace reportada
   √  Queda vinculada a la solicitud del ciudadano
   √  Hereda la prioridad de su tipo
 
 └ Incidencia fechada en el futuro (debe rechazarse)
-  POST http://localhost:8080/api/v1/incidencias [422 Unprocessable Entity (WebDAV) (RFC 4918), 764B, 13ms]
+  POST http://localhost:8080/api/v1/incidencias [422 Unprocessable Entity (WebDAV) (RFC 4918), 764B, 12ms]
   √  Responde 422
   √  Informa la regla incumplida
 
 └ Tomar la incidencia en atención
-  PATCH http://localhost:8080/api/v1/incidencias/INC-2026-00001/atencion [200 OK, 902B, 64ms]
+  PATCH http://localhost:8080/api/v1/incidencias/INC-2026-00001/atencion [200 OK, 902B, 27ms]
   √  Responde 200
   √  Pasa a EN_ATENCION
 
 └ Listado de incidencias de un vehículo
-  GET http://localhost:8080/api/v1/incidencias?placa=UXT101&tamano=5 [200 OK, 999B, 32ms]
+  GET http://localhost:8080/api/v1/incidencias?placa=UXT101&tamano=5 [200 OK, 999B, 27ms]
   √  Responde 200
   √  Devuelve una página, no una lista suelta
   √  El filtro por placa se respeta
 
 └ Cerrar la incidencia
-  PATCH http://localhost:8080/api/v1/incidencias/INC-2026-00001/cierre [200 OK, 898B, 29ms]
+  PATCH http://localhost:8080/api/v1/incidencias/INC-2026-00001/cierre [200 OK, 898B, 34ms]
   √  Responde 200
   √  Queda cerrada
   √  Conserva el vínculo con la solicitud del ciudadano
 
 □ 07 - Indicadores
 └ Indicadores del año en curso
-  GET http://localhost:8080/api/v1/indicadores [403 Forbidden, 723B, 11ms]
+  GET http://localhost:8080/api/v1/indicadores [403 Forbidden, 724B, 16ms]
   √  Un funcionario no accede a los indicadores
   √  El rol FUNCIONARIO no alcanza: hace falta ADMIN o AUDITOR
 
 └ Indicadores como administrador
-  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [200 OK, 961B, 116ms]
+  POST http://localhost:8080/api/v1/autenticacion/iniciar-sesion [200 OK, 979B, 171ms]
   √  Responde 200
   √  El administrador tiene rol ADMIN
 
 └ Indicadores de oportunidad (con rol ADMIN)
-  GET http://localhost:8080/api/v1/indicadores [200 OK, 833B, 43ms]
+  GET http://localhost:8080/api/v1/indicadores [200 OK, 833B, 70ms]
   √  Responde 200
   √  Informa el cumplimiento de oportunidad
   √  Desglosa el conteo por estado
 
 □ 08 - Administración de la flota (rol ADMIN)
 └ Registrar una ruta nueva
-  POST http://localhost:8080/api/v1/rutas [201 Created, 748B, 30ms]
+  POST http://localhost:8080/api/v1/rutas [201 Created, 746B, 42ms]
   √  Responde 201
   √  Indica dónde quedó el recurso creado
   √  Devuelve la ruta con su código
@@ -199,13 +199,13 @@ Transcaribe — API de PQRS e incidencias
   √  Entra operativo y con la capacidad de su tipo
 
 └ Listado paginado de la flota
-  GET http://localhost:8080/api/v1/vehiculos?tamano=50&ordenarPor=placa [200 OK, 1.81kB, 20ms]
+  GET http://localhost:8080/api/v1/vehiculos?tamano=50&ordenarPor=placa [200 OK, 1.81kB, 22ms]
   √  Responde 200
   √  Devuelve una página de vehículos
   √  El vehículo recién vinculado ya figura en la flota
 
 └ Asignar la solicitud a un funcionario
-  POST http://localhost:8080/api/v1/pqrs/TC-2026-000001/asignacion?funcionario=jlopez [200 OK, 1.55kB, 32ms]
+  POST http://localhost:8080/api/v1/pqrs/TC-2026-000001/asignacion?funcionario=jarnedoz [200 OK, 1.56kB, 33ms]
   √  Responde 200
   √  La solicitud queda a nombre de quien debe responderla
 
@@ -222,9 +222,9 @@ Transcaribe — API de PQRS e incidencias
 ├─────────────────────────┼────────────────────┼───────────────────┤
 │              assertions │                 95 │                 0 │
 ├─────────────────────────┴────────────────────┴───────────────────┤
-│ total run duration: 5.8s                                         │
+│ total run duration: 6s                                           │
 ├──────────────────────────────────────────────────────────────────┤
-│ total data received: 16.22kB (approx)                            │
+│ total data received: 16.25kB (approx)                            │
 ├──────────────────────────────────────────────────────────────────┤
-│ average response time: 85ms [min: 11ms, max: 465ms, s.d.: 107ms] │
+│ average response time: 93ms [min: 12ms, max: 429ms, s.d.: 112ms] │
 └──────────────────────────────────────────────────────────────────┘

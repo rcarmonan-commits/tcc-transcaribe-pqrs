@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 class PqrsApiIntegracionTest {
 
     private static final String CREDENCIALES_FUNCIONARIO = """
-            {"nombreUsuario":"jlopez","contrasena":"Transc@ribe2026.Fun"}
+            {"nombreUsuario":"jarnedoz","contrasena":"Transc@ribe2026.Fun"}
             """;
 
     @Autowired private MockMvc mockMvc;

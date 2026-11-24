@@ -12,19 +12,22 @@
 --    auditor  -> Transc@ribe2026.Aud   (ROLE_AUDITOR)
 -- =====================================================================
 
+-- Las tres cuentas son las de los integrantes del equipo, cada uno con el rol
+-- que corresponde a la capa que trabajó. Son datos de demostración: el perfil
+-- de producción no incluye esta ruta de migración.
 INSERT INTO usuario (nombre_usuario, correo, hash_contrasena, nombres, apellidos, activo, intentos_fallidos, fecha_creacion) VALUES
-  ('admin',   'admin@transcaribe.gov.co',   '$2b$10$DV8NVi4YhQG2waslsnxy8OPSCRRpkg0bQCrtsqN2nbhvYaw6Y7p8W', 'Ana María',  'Restrepo', TRUE, 0, TIMESTAMP '2026-01-15 08:00:00'),
-  ('jlopez',  'jlopez@transcaribe.gov.co',  '$2b$10$GJ/Buhkg9vZshfK.S4kAFujSEDVMixU.0XbNUfuCDMLVh8s18C2VK', 'Jorge',      'López',    TRUE, 0, TIMESTAMP '2026-01-15 08:05:00'),
-  ('auditor', 'auditor@transcaribe.gov.co', '$2b$10$PiZ5McuRY5eNTA8gRmPh5Oybt6xz32T8Dd7Dk9uvHn6I9CMbAKSbS', 'Luz Dary',   'Pérez',    TRUE, 0, TIMESTAMP '2026-01-15 08:10:00');
+  ('rcarmonan', 'rcarmonan@unicartagena.edu.co', '$2b$10$DV8NVi4YhQG2waslsnxy8OPSCRRpkg0bQCrtsqN2nbhvYaw6Y7p8W', 'Rosary Eilyn',   'Carmona Navarro', TRUE, 0, TIMESTAMP '2026-01-15 08:00:00'),
+  ('jarnedoz',  'jarnedoz@unicartagena.edu.co',  '$2b$10$GJ/Buhkg9vZshfK.S4kAFujSEDVMixU.0XbNUfuCDMLVh8s18C2VK', 'José Luis',      'Arnedo Zambrano', TRUE, 0, TIMESTAMP '2026-01-15 08:05:00'),
+  ('mortegas4', 'mortegas4@unicartagena.edu.co', '$2b$10$PiZ5McuRY5eNTA8gRmPh5Oybt6xz32T8Dd7Dk9uvHn6I9CMbAKSbS', 'Moisés Daniel',  'Ortega Sánchez',  TRUE, 0, TIMESTAMP '2026-01-15 08:10:00');
 
 INSERT INTO usuario_rol (usuario_id, rol_id)
-SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_ADMIN'       WHERE u.nombre_usuario = 'admin';
+SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_ADMIN'       WHERE u.nombre_usuario = 'rcarmonan';
 INSERT INTO usuario_rol (usuario_id, rol_id)
-SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_FUNCIONARIO' WHERE u.nombre_usuario = 'admin';
+SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_FUNCIONARIO' WHERE u.nombre_usuario = 'rcarmonan';
 INSERT INTO usuario_rol (usuario_id, rol_id)
-SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_FUNCIONARIO' WHERE u.nombre_usuario = 'jlopez';
+SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_FUNCIONARIO' WHERE u.nombre_usuario = 'jarnedoz';
 INSERT INTO usuario_rol (usuario_id, rol_id)
-SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_AUDITOR'     WHERE u.nombre_usuario = 'auditor';
+SELECT u.id, r.id FROM usuario u JOIN rol r ON r.codigo = 'ROLE_AUDITOR'     WHERE u.nombre_usuario = 'mortegas4';
 
 -- Rutas representativas del Sistema Integrado de Transporte Masivo.
 INSERT INTO ruta (codigo, nombre, origen, destino, activa) VALUES
