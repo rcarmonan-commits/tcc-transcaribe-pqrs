@@ -59,6 +59,19 @@ un esquema paralelo para desarrollo: si una migración está mal, falla en todas
 | En la máquina, con Docker | Docker Desktop | PostgreSQL 16 en contenedor |
 | En Render | una cuenta de Render | PostgreSQL gestionado, en un esquema propio |
 
+Si prefiere no elegir, [`scripts/arrancar.ps1`](scripts/arrancar.ps1) hace los tres con una sola
+orden. Comprueba lo que falta en el equipo, lo instala o explica cómo, genera el `.env` cuando
+hace falta y deja preparadas las configuraciones de ejecución de IntelliJ y VS Code:
+
+```powershell
+.\scripts\arrancar.ps1                 # sin Docker
+.\scripts\arrancar.ps1 -Modo docker    # con Docker
+.\scripts\arrancar.ps1 -Modo nube      # comprueba el despliegue publicado
+```
+
+Ejecutado fuera del repositorio, lo clona antes: sirve para partir de una máquina donde no hay
+nada. Lo que sigue es lo que hace por dentro, por si se prefiere a mano.
+
 ### 1. Sin Docker ni PostgreSQL instalado
 
 ```bash
@@ -78,13 +91,23 @@ con el classpath de pruebas, donde ya estaba.
 
 ### 2. Con Docker
 
+```powershell
+.\scripts\arrancar.ps1 -Modo docker
+```
+
+El `.env` lo genera el script con credenciales nuevas para esa máquina. A mano son dos órdenes:
+
 ```bash
-cp .env.ejemplo .env     # y cambie los tres valores marcados CAMBIAR
+cp .env.ejemplo .env     # y cambie los valores marcados CAMBIAR
 docker compose up --build
 ```
 
 El servicio queda en `http://localhost:8080` con PostgreSQL 16 real detrás. La base **no** se
 publica al exterior: su puerto se enlaza solo a `127.0.0.1`.
+
+El `.env` manda el perfil. Con `PERFIL=dev` se cargan los datos de demostración y se puede entrar
+de inmediato; con `PERFIL=prod` no hay ninguna cuenta y la primera se crea desde `ADMIN_USUARIO`,
+`ADMIN_CORREO` y `ADMIN_CONTRASENA`, igual que en la nube.
 
 **Variante, contra un PostgreSQL que ya tenga instalado:**
 
@@ -107,9 +130,18 @@ Dockerfile** que se usa en local, de modo que lo verificado en la máquina es lo
 La clave de firma se genera sola; ninguna credencial pasa por el repositorio.
 
 El plano **no** crea la base: Render solo admite una gratuita por cuenta, así que el servicio
-reutiliza la que exista y se instala en un esquema propio dentro de ella (`DB_ESQUEMA`). Pide
-cuatro valores al aplicarlo —`DB_HOST`, `DB_NAME`, `DB_USER` y `DB_PASSWORD`— y, si falta alguno,
-el arranque se detiene diciendo cuál, en vez de intentar conectarse a `localhost`.
+reutiliza la que exista y se instala en un esquema propio dentro de ella (`DB_ESQUEMA`). Basta
+con pegar `DATABASE_URL`, la cadena interna que Render muestra en la página de la base; el
+servicio la parte en sus piezas al arrancar. Quien prefiera darlas sueltas puede usar `DB_HOST`,
+`DB_NAME`, `DB_USER` y `DB_PASSWORD`, que mandan sobre lo derivado. Si no hay ni una cosa ni la
+otra, el arranque se detiene diciendo qué falta, en vez de intentar conectarse a `localhost`.
+
+Las tres `ADMIN_*` crean la primera cuenta, porque el perfil de producción no carga usuarios de
+demostración. Sin ellas el servicio atiende las rutas públicas —radicar y consultar son un
+derecho de petición— pero nadie puede gestionar.
+
+**Un aviso que cuesta caro:** Render solo pide los valores marcados `sync: false` **al crear** el
+blueprint. Si el servicio ya existe, hay que editarlos en *Environment* y relanzar el despliegue.
 
 Detalle completo, incluidas las limitaciones del plan gratuito, en
 [docs/DESPLIEGUE_RENDER.md](docs/DESPLIEGUE_RENDER.md).
