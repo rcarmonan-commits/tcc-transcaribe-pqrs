@@ -166,7 +166,7 @@ un error del dibujo: el dominio declara interfaces (`PqrsRepositoryPort`,
 `CatalogoRepositoryPort`, `AuditoriaPort`) y la infraestructura las implementa. La dependencia
 va del detalle hacia la regla, nunca al revés.
 
-**Consecuencia comprobable:** 135 de las 143 pruebas se ejecutan en 6,8 segundos
+**Consecuencia comprobable:** 154 de las 162 pruebas se ejecutan en unos 12 segundos
 porque no necesitan Spring ni base de datos. Si el dominio tuviera anotaciones del framework,
 cada prueba exigiría levantar un contexto.
 

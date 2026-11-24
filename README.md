@@ -131,7 +131,7 @@ curl -X PATCH http://localhost:8080/api/v1/pqrs/TC-2026-000001/estado \
 ## Verificación
 
 ```bash
-./mvnw verify                      # 143 pruebas + informe de cobertura
+./mvnw verify                      # 162 pruebas + informe de cobertura
 ```
 
 La colección de Postman en [`postman/`](postman/) es ejecutable de principio a fin con el
@@ -169,8 +169,8 @@ src/main/java/co/edu/unicartagena/transcaribe/pqrs/
 ```
 
 La dependencia apunta **siempre hacia el dominio**. La capa de persistencia depende del
-dominio, no al revés: por eso las 135 pruebas de dominio y aplicación se ejecutan en menos de
-siete segundos, sin levantar Spring ni base de datos.
+dominio, no al revés: por eso las 154 pruebas que no son de integración se ejecutan en unos
+doce segundos, sin levantar Spring ni base de datos.
 
 Detalle completo en el [manual de usuario y operación](docs/MANUAL_USUARIO.md) y en los
 [diagramas](docs/diagramas/), que se **generan con código** (`docs/diagramas/generar_diagramas.py`)

@@ -102,6 +102,24 @@ mano.
 | `DB_POOL_MAX` | fija: `5` | El plan gratuito limita las conexiones simultáneas |
 | `PORT` | la inyecta Render | La aplicación escucha en `${PORT:8080}` |
 
+### Qué pasa si una de las cuatro no llega
+
+El servicio **no arranca**, y lo dice con esas palabras:
+
+```
+El perfil de producción no puede arrancar: falta definir DB_HOST, DB_NAME, DB_USER,
+DB_PASSWORD. Sin esas variables la aplicación compondría una URL hacia localhost:5432,
+donde no hay ninguna base de datos...
+```
+
+La comprobación existe porque sin ella el fallo era peor que silencioso: era engañoso. Cada
+pieza de la URL tiene un valor por omisión, así que una variable ausente no producía un error
+de configuración sino una URL válida apuntando a `localhost`. Dentro del contenedor ahí no hay
+nada, y el arranque moría sesenta líneas después con un `Connection to localhost:5432 refused`
+que parece un problema de red. Quien lo lee busca un cortafuegos cuando lo que falta es un
+valor. La verificación corre al preparar el entorno, antes de que Flyway o el grupo de
+conexiones existan, y está cubierta por ocho pruebas.
+
 ### Por qué la URL de la base se arma por piezas
 
 Render entrega su cadena de conexión en formato `postgres://usuario:clave@servidor/base`, que
@@ -142,8 +160,9 @@ Conviene conocerlas antes de la sustentación, para que nada sorprenda en vivo.
 |---|---|---|
 | `cannot have more than one active free tier database` | La cuenta ya tiene una base gratuita | Es lo previsto: este plano no crea base. Use la existente con su propio `DB_ESQUEMA` |
 | Arranca pero no encuentra las tablas | `DB_ESQUEMA` cambió entre despliegues | Flyway creó el esquema anterior; vuelva a poner el mismo valor |
+| El arranque se detiene diciendo que falta `DB_HOST`, `DB_NAME`, `DB_USER` o `DB_PASSWORD` | Se aplicó el plano sin rellenar los valores que pide | Añadirlos en *Environment* del servicio con los datos del paso 2. El servicio los comprueba antes de intentar conectarse, a propósito |
 | El despliegue falla al arrancar y la traza menciona la clave de firma | `JWT_SECRET` no se generó | Verificar que la variable existe en *Environment*; si no, crearla con 48 caracteres aleatorios |
-| Arranca y muere con error de conexión a la base | La base todavía no estaba lista | Render reintenta solo; si persiste, comprobar que ambos recursos están en la misma región |
+| Arranca y muere con error de conexión a la base | El servidor o la clave no son los correctos | Volver a copiarlos de *Connections*. Si la base está en otra región, usar el host externo y poner `DB_PARAMS` en `?sslmode=require` |
 | Hibernate se queja de una columna | El esquema y las entidades no coinciden | Revisar que la última migración se aplicó: la tabla `flyway_schema_history` lo dice |
 | El navegador bloquea las peticiones por CORS | `CORS_ORIGENES` quedó con la URL de ejemplo | Ponerla con la URL real del servicio |
 | La primera petición del día tarda un minuto | El servicio estaba dormido | Es el plan gratuito. Despertarlo antes de cualquier demostración |
