@@ -198,7 +198,9 @@ Análisis de dependencias vulnerables (necesita clave de la NVD):
 
 ```
 src/main/java/co/edu/unicartagena/transcaribe/pqrs/
-├── domain/              Reglas de negocio. Sin una sola anotación de framework.
+├── domain/              Reglas de negocio. Sin dependencias de Spring: no hay que
+│                        levantar el contenedor para probarlas. Las entidades sí
+│                        llevan el mapeo de Jakarta Persistence.
 │   ├── model/           Agregados, entidades y enumeraciones
 │   ├── port/            Interfaces que el dominio DECLARA y la infraestructura implementa
 │   ├── service/         Calendario hábil, política de prioridad, generador de radicado
