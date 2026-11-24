@@ -1,0 +1,53 @@
+# Qué NO se envía al demonio de Docker al construir la imagen.
+#
+# Sin este archivo el contexto de construcción pasa de 65 MB, porque arrastra
+# `target/` entero —la compilación de la máquina, que la imagen vuelve a hacer
+# por su cuenta— junto con el historial de Git y la base H2 del perfil local.
+# Además metía el `.env` en el contexto: no acaba dentro de la imagen, porque
+# el Dockerfile no lo copia, pero un secreto que no hace falta enviar es un
+# secreto que no se envía.
+
+# --- Compilación: la imagen la rehace desde el código ---
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# --- Secretos y entorno ---
+.env
+.env.*
+!.env.ejemplo
+*.pem
+*.key
+credenciales*
+
+# --- Base H2 del perfil local ---
+datos/
+*.mv.db
+*.trace.db
+
+# --- Historial y configuración de herramientas ---
+.git/
+.github/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+.claude/
+.agents/
+.cursorrules
+.clinerules
+
+# --- Material que no interviene en la construcción ---
+docs/
+postman/
+capturas/
+*.md
+!README.md
+compose.yaml
+render.yaml
+
+# --- Sistema operativo y bloqueos de Office ---
+Thumbs.db
+.DS_Store
+~$*
