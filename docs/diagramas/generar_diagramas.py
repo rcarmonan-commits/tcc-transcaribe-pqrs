@@ -603,7 +603,7 @@ def diagrama_despliegue():
 
     L.caja(Caja(40, 800, 545, alto_de_caja(4, lineas_titulo=2)),
            "«entorno de integración»\nGitHub Actions",
-           ["Compila y ejecuta las 143 pruebas", "Construye la imagen Docker",
+           ["Compila y ejecuta las 151 pruebas", "Construye la imagen Docker",
             "Analiza dependencias vulnerables", "Sin secretos en el repositorio"],
            AMBAR_CLARO, AMBAR, AMBAR, tam_titulo=19)
 
@@ -625,8 +625,8 @@ def diagrama_despliegue():
 
     L.leyenda(Caja(40, 1030, 1120, 70),
               "El mismo Dockerfile se usa en local con Compose y en Render mediante render.yaml, de modo que lo que se\n"
-              "verifica en la máquina es exactamente lo que se despliega. Render inyecta el puerto en la variable PORT\n"
-              "y las credenciales de la base desde su servicio gestionado: nada de eso vive en el repositorio.")
+              "verifica en la máquina es exactamente lo que se despliega. Render inyecta el puerto en la variable PORT;\n"
+              "la base le es externa y se comparte en un esquema propio. Ninguna credencial vive en el repositorio.")
 
     L.guardar("06-despliegue.png")
 
