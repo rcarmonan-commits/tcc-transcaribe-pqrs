@@ -10,7 +10,7 @@ cualquiera pueda contrastarla volviendo a ejecutar los mismos comandos.
 ./mvnw verify
 ```
 
-Resultado al cierre del cuarto sprint: **162 pruebas, 0 fallos, 0 errores**.
+Resultado al cierre del cuarto sprint: **168 pruebas, 0 fallos, 0 errores**.
 El informe completo de Surefire y el de cobertura de JaCoCo quedan en `target/` y los
 publica también la integración continua como artefactos descargables de cada ejecución.
 
@@ -18,7 +18,7 @@ publica también la integración continua como artefactos descargables de cada e
 |---|---|---|
 | Dominio | 105 | Reglas de negocio aisladas, sin framework ni base de datos |
 | Aplicación | 30 | Casos de uso con los puertos sustituidos por dobles |
-| Infraestructura | 19 | Configuración de despliegue: credenciales ausentes y traducción de la cadena de conexión |
+| Infraestructura | 25 | Configuración de despliegue: credenciales ausentes y traducción de la cadena de conexión |
 | Integración | 8 | Flujo completo del API sobre H2 con el esquema real de Flyway |
 
 ## Despliegue en Docker

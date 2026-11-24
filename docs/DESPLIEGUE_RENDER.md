@@ -103,13 +103,15 @@ tenerla clara antes de preparar una demostración:
 | Consultar con radicado y documento | Funciona, y con documento ajeno devuelve 404 |
 | Rechazo de campos no declarados | Funciona: 400 |
 | Cualquier ruta protegida sin credenciales | 401 |
-| **Iniciar sesión como funcionario** | **No**: los usuarios de demostración solo existen en `local`, `dev` y `test` |
-| **La colección de Postman completa** | **No pasa entera**: sus peticiones de gestión necesitan iniciar sesión y una ruta `T100` que en producción no existe |
+| Iniciar sesión y gestionar | Sí, con las cuentas propias del despliegue. **No son las de demostración**: se crean desde el entorno y sus contraseñas no están en el repositorio |
+| Autorización por rol | Sí: una cuenta de funcionario recibe 403 en los indicadores; una de administración o auditoría, 200 |
+| **La colección de Postman completa** | **No pasa entera**: usa los nombres de usuario de demostración y una ruta `T100` que producción no trae cargada |
 
-Por eso el trámite interno se demuestra contra el despliegue local, donde sí hay datos de
-demostración, y la nube se usa para mostrar que el mismo artefacto responde en internet con la
-misma autorización. Que no se pueda entrar con un usuario conocido no es una carencia del
-despliegue: es la decisión de seguridad funcionando.
+La distinción que importa es esta: en la nube **no existen las cuentas de contraseña conocida**,
+y eso es lo que la decisión de seguridad protege. Lo que sí existe son las cuentas propias del
+despliegue, creadas desde el entorno con contraseñas que no viven en ningún archivo versionado.
+El trámite interno puede demostrarse en los dos sitios; lo que la nube no trae es el catálogo de
+rutas y flota, porque eso también es dato de demostración.
 
 ---
 
@@ -124,6 +126,7 @@ mano.
 | `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | se piden al desplegar | Lo mismo, pieza por pieza. Lo que se defina aquí manda sobre lo derivado de `DATABASE_URL` |
 | `DB_ESQUEMA` | fija: `pqrs` | Espacio de nombres propio dentro de esa base |
 | `DB_PARAMS` | vacía | `?sslmode=require` si la base es externa o se conecta por host público |
+| `ADMIN_USUARIO`, `ADMIN_CORREO`, `ADMIN_CONTRASENA` | se piden al desplegar | La primera cuenta de administración, que el servicio crea **solo si la tabla de usuarios está vacía**. La contraseña debe tener al menos 12 caracteres |
 | `JWT_SECRET` | `generateValue: true` | La genera Render. Nadie la ve, ni siquiera quien despliega |
 | `SPRING_PROFILES_ACTIVE` | fija: `prod` | Sin datos de demostración, trazas en WARN |
 | `SWAGGER_ENABLED` | fija: `true` | Habilitada a propósito para que el API pueda explorarse |
@@ -131,6 +134,33 @@ mano.
 | `JAVA_OPTS` | fija | 70 % de la memoria disponible y recolector serie |
 | `DB_POOL_MAX` | fija: `5` | El plan gratuito limita las conexiones simultáneas |
 | `PORT` | la inyecta Render | La aplicación escucha en `${PORT:8080}` |
+
+### La primera cuenta en un despliegue recién hecho
+
+Producción no carga los datos de demostración, de modo que una base nueva no tiene ningún
+usuario: no se puede iniciar sesión, ni asignar una solicitud, ni consultar indicadores. Las
+rutas públicas —radicar y consultar— sí funcionan, porque el derecho de petición no puede
+depender de que alguien administre.
+
+Para resolver ese arranque en frío se definen tres variables en *Environment*:
+
+```
+ADMIN_USUARIO      rcarmonan
+ADMIN_CORREO       rcarmonan@unicartagena.edu.co
+ADMIN_CONTRASENA   <al menos 12 caracteres, elegida por usted>
+```
+
+Al arrancar, el servicio comprueba si la tabla de usuarios está vacía. Si lo está y las tres
+variables tienen valor, crea esa cuenta con rol de administración y de funcionario, y lo anota en
+el registro sin escribir la contraseña. **Si ya hay cuentas, no toca nada**: un reinicio no
+recrea la cuenta ni reabre una que alguien haya desactivado, que sería una puerta trasera
+disfrazada de comodidad.
+
+Si las variables faltan, el servicio arranca igual y lo advierte en el registro. No falla a
+propósito: un servicio que atiende peticiones ciudadanas no debe caerse porque todavía no tenga
+administrador.
+
+La contraseña vive en Render y nunca en el repositorio. Conviene cambiarla tras el primer acceso.
 
 ### Qué pasa si una de las cuatro no llega
 

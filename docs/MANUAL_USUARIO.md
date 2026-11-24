@@ -166,7 +166,7 @@ un error del dibujo: el dominio declara interfaces (`PqrsRepositoryPort`,
 `CatalogoRepositoryPort`, `AuditoriaPort`) y la infraestructura las implementa. La dependencia
 va del detalle hacia la regla, nunca al revés.
 
-**Consecuencia comprobable:** 154 de las 162 pruebas se ejecutan en unos 12 segundos
+**Consecuencia comprobable:** 160 de las 168 pruebas se ejecutan en unos 12 segundos
 porque no necesitan Spring ni base de datos. Si el dominio tuviera anotaciones del framework,
 cada prueba exigiría levantar un contexto.
 
@@ -302,6 +302,7 @@ se listan en el apartado 5.
 | `CORS_ORIGENES` | Recomendada | Orígenes permitidos, separados por coma. No se admite `*` |
 | `RATE_LIMIT_POR_MINUTO` | No | Por omisión 60 |
 | `PORT` | No | Por omisión 8080. En la nube la inyecta el proveedor |
+| `ADMIN_USUARIO`, `ADMIN_CORREO`, `ADMIN_CONTRASENA` | En un despliegue nuevo | Crean la primera cuenta de administración si la tabla de usuarios está vacía. La contraseña necesita 12 caracteres o más |
 | `SWAGGER_ENABLED` | No | Desactivado por omisión en `prod`; el despliegue publicado lo activa a propósito, para que el contrato pueda explorarse |
 
 Si faltan las credenciales de la base, el servicio **no arranca**: se detiene nombrando las

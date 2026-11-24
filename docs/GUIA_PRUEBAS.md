@@ -16,17 +16,17 @@ primera encuentra reglas mal escritas, la segunda encuentra servicios mal config
 ./mvnw verify
 ```
 
-Son **162 pruebas** y tardan alrededor de un minuto. El reparto no es decorativo: cada nivel
+Son **168 pruebas** y tardan alrededor de un minuto. El reparto no es decorativo: cada nivel
 responde a una pregunta distinta.
 
 | Nivel | Pruebas | Qué responde | Levanta contexto |
 |---|---|---|---|
 | Dominio | 105 | ¿La regla de negocio es correcta? | No |
 | Aplicación | 30 | ¿El caso de uso orquesta bien, con los puertos sustituidos por dobles? | No |
-| Infraestructura | 19 | ¿La configuración del despliegue falla pronto y con un mensaje útil? | No |
+| Infraestructura | 25 | ¿La configuración del despliegue falla pronto y con un mensaje útil? | No |
 | Integración | 8 | ¿El API completo funciona sobre una base real con el esquema aplicado? | Sí |
 
-Las 154 que no levantan contexto tardan unos doce segundos; las ocho de integración, casi un
+Las 160 que no levantan contexto tardan unos doce segundos; las ocho de integración, casi un
 minuto. Esa diferencia es la razón práctica de mantener el dominio libre de anotaciones del
 marco de trabajo.
 
@@ -194,10 +194,11 @@ curl -X POST $URL/api/v1/pqrs -H "Content-Type: application/json" -d '{
 curl "$URL/api/v1/pqrs/publico/TC-2026-000001?documento=1047398221"
 ```
 
-Lo que **no** se puede comprobar en la nube es el trámite interno, porque exige iniciar sesión.
-Para eso está el despliegue local, que sí carga los datos de demostración. Que no se pueda entrar
-con un usuario conocido en producción no es una carencia del despliegue: es la decisión de
-seguridad funcionando.
+En la nube también se puede iniciar sesión, pero **no con estas credenciales**: el despliegue
+tiene sus propias cuentas, creadas desde el entorno, con contraseñas que no están en ningún
+archivo versionado. Lo que allí no existe es el catálogo de rutas y flota, que también es dato de
+demostración; por eso la colección completa no pasa contra producción y el recorrido con datos se
+hace en local.
 
 ---
 
@@ -209,4 +210,4 @@ seguridad funcionando.
 | `docs/evidencias/docker-contenedores.txt` | Estado de los contenedores tras levantar la pila |
 | `target/surefire-reports/` | Informe de JUnit por clase de prueba |
 | `target/site/jacoco/index.html` | Cobertura de código |
-| Pestaña *Actions* del repositorio | Las 162 pruebas ejecutadas en cada envío, con los informes como artefactos |
+| Pestaña *Actions* del repositorio | Las 168 pruebas ejecutadas en cada envío, con los informes como artefactos |

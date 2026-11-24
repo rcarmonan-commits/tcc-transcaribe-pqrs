@@ -94,6 +94,18 @@ services:
       - key: DB_POOL_MAX
         value: "5"
 
+      # --- Primera cuenta de administracion --------------------------
+      # Produccion no carga los datos de demostracion, asi que un despliegue
+      # recien hecho no admite a nadie. Estas tres variables crean la primera
+      # cuenta, y solo si la tabla de usuarios esta vacia: un reinicio no
+      # sobrescribe nada. La contrasena vive en Render, nunca en el repositorio.
+      - key: ADMIN_USUARIO
+        sync: false
+      - key: ADMIN_CORREO
+        sync: false
+      - key: ADMIN_CONTRASENA
+        sync: false
+
       # --- Seguridad --------------------------------------------------
       # La clave de firma la genera Render y nadie llega a verla. Para
       # rotarla basta con borrar el valor y redesplegar.
