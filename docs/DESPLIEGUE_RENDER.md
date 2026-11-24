@@ -47,16 +47,22 @@ dentro de la imagen.**
 
 1. Entrar a [dashboard.render.com](https://dashboard.render.com) y autenticarse con la cuenta
    de GitHub que tiene acceso al repositorio.
-2. Abrir la base PostgreSQL que ya exista en la cuenta y, en su pestaña **Connections**, anotar
-   **Hostname**, **Database**, **Username** y **Password**. Si la base está en Render, use el
-   *Internal Database URL*: el host interno no sale a internet.
+2. Abrir la base PostgreSQL que ya exista en la cuenta y, en su pestaña **Connections**, copiar
+   el **Internal Database URL** completo. Tiene esta forma, y el host interno no sale a internet:
+
+   ```
+   postgresql://usuario:clave@dpg-xxxxxxxxxxxx-a/basededatos
+   ```
+
 3. **New → Blueprint**.
 4. Seleccionar el repositorio `rcarmonan-commits/tcc-transcaribe-pqrs`.
-5. Render detecta `render.yaml` y **pide los cuatro valores** del paso 2: `DB_HOST`, `DB_NAME`,
-   `DB_USER` y `DB_PASSWORD`. Rellenarlos y confirmar con **Apply**.
+5. Render detecta `render.yaml` y pide los valores marcados. **Basta con pegar esa cadena en
+   `DATABASE_URL`**: el servicio la parte él solo y deriva servidor, base, usuario y clave. Las
+   variables `DB_HOST`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` quedan como alternativa, por si se
+   prefiere darlas sueltas o corregir solo una. Confirmar con **Apply**.
 
-   Si la base es externa a Render, o se conecta por su host público, poner además
-   `DB_PARAMS` en `?sslmode=require`.
+   Si la base es externa a Render, o se conecta por su host público, el parámetro de TLS puede ir
+   en la propia cadena (`?sslmode=require`); el servicio lo traslada a `DB_PARAMS`.
 6. Esperar. La primera construcción tarda entre ocho y doce minutos: descarga las dependencias
    de Maven, compila y arma la imagen en dos etapas.
 7. Cuando el servicio quede en **Live**, copiar la URL que asigna Render
@@ -79,8 +85,27 @@ curl -i $URL/api/v1/indicadores
 # 401: la autorización funciona igual que en local
 ```
 
-Para probar el flujo completo, cambie la variable `baseUrl` de la colección de Postman por esa
-URL y ejecute el Runner. Las 73 aserciones deben pasar igual que contra el despliegue local.
+### Qué se puede demostrar en la nube, y qué no
+
+El perfil `prod` **no carga los datos de demostración**: la ruta de migración que los contiene
+queda fuera a propósito, porque mantener cuentas de contraseña conocida fuera del camino de
+producción cierra el riesgo de desplegarlas sin querer. La consecuencia práctica conviene
+tenerla clara antes de preparar una demostración:
+
+| En el despliegue publicado | Estado |
+|---|---|
+| Salud, catálogos y rutas activas | Responden. Los catálogos y el calendario de festivos son migración, no demostración |
+| Radicar una solicitud | Funciona. Sin `codigoRuta`, porque en producción todavía no hay rutas cargadas |
+| Consultar con radicado y documento | Funciona, y con documento ajeno devuelve 404 |
+| Rechazo de campos no declarados | Funciona: 400 |
+| Cualquier ruta protegida sin credenciales | 401 |
+| **Iniciar sesión como funcionario** | **No**: los usuarios de demostración solo existen en `local`, `dev` y `test` |
+| **La colección de Postman completa** | **No pasa entera**: sus peticiones de gestión necesitan iniciar sesión y una ruta `T100` que en producción no existe |
+
+Por eso el trámite interno se demuestra contra el despliegue local, donde sí hay datos de
+demostración, y la nube se usa para mostrar que el mismo artefacto responde en internet con la
+misma autorización. Que no se pueda entrar con un usuario conocido no es una carencia del
+despliegue: es la decisión de seguridad funcionando.
 
 ---
 
@@ -91,7 +116,8 @@ mano.
 
 | Variable | Origen | Para qué |
 |---|---|---|
-| `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | se piden al desplegar | Credenciales de la base que ya existe en la cuenta |
+| `DATABASE_URL` | se pide al desplegar | La conexión entera en una sola variable, en el formato del proveedor. El servicio la traduce |
+| `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | se piden al desplegar | Lo mismo, pieza por pieza. Lo que se defina aquí manda sobre lo derivado de `DATABASE_URL` |
 | `DB_ESQUEMA` | fija: `pqrs` | Espacio de nombres propio dentro de esa base |
 | `DB_PARAMS` | vacía | `?sslmode=require` si la base es externa o se conecta por host público |
 | `JWT_SECRET` | `generateValue: true` | La genera Render. Nadie la ve, ni siquiera quien despliega |
@@ -124,8 +150,10 @@ conexiones existan, y está cubierta por ocho pruebas.
 
 Render entrega su cadena de conexión en formato `postgres://usuario:clave@servidor/base`, que
 **no** es una URL JDBC: el driver de Java espera `jdbc:postgresql://servidor:puerto/base` con
-el usuario y la clave aparte. Por eso el perfil de producción compone la URL a partir de
-`DB_HOST`, `DB_PORT` y `DB_NAME`:
+el usuario y la clave aparte. De ahí salen las dos variantes del paso 5. Si se entrega la cadena
+en `DATABASE_URL`, `ConexionDesdeUrlDelProveedor` la parte al preparar el entorno y publica las
+piezas antes de que nadie las lea; si se entregan sueltas, se usan tal cual. En ambos casos el
+perfil de producción compone la URL a partir de `DB_HOST`, `DB_PORT` y `DB_NAME`:
 
 ```yaml
 url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:transcaribe_pqrs}}

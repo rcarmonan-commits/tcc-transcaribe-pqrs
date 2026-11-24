@@ -47,12 +47,29 @@ services:
         value: prod
 
       # --- Conexión a la base ----------------------------------------
-      # Render los pide al aplicar el plano. Se copian del apartado
-      # "Connections" de la base PostgreSQL que ya tenga la cuenta:
-      #   DB_HOST     -> Hostname  (el interno si la base está en Render)
-      #   DB_NAME     -> Database
-      #   DB_USER     -> Username
-      #   DB_PASSWORD -> Password
+      # Hay dos formas, y basta con una.
+      #
+      # (a) RECOMENDADA. Pegar en DATABASE_URL el "Internal Database URL"
+      #     que aparece en la pestaña Connections de la base. El servicio
+      #     la parte solo: ConexionDesdeUrlDelProveedor traduce el formato
+      #     postgresql://usuario:clave@servidor/base al que espera el driver
+      #     de Java. Es el convenio de los doce factores, y el mismo que
+      #     usan Heroku, Railway y Neon.
+      #
+      # (b) Pieza por pieza, copiando del mismo apartado Connections:
+      #       DB_HOST     -> Hostname  (el interno si la base está en Render)
+      #       DB_NAME     -> Database
+      #       DB_USER     -> Username
+      #       DB_PASSWORD -> Password
+      #
+      # Lo definido pieza por pieza manda sobre lo derivado de la cadena, de
+      # modo que se puede usar (a) y corregir una sola pieza con (b).
+      #
+      # OJO: Render solo pide los valores `sync: false` al CREAR el blueprint.
+      # Si se aplica sobre un servicio que ya existe, los ignora y hay que
+      # escribirlos a mano en Environment.
+      - key: DATABASE_URL
+        sync: false
       - key: DB_HOST
         sync: false
       - key: DB_NAME

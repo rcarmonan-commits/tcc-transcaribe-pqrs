@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
@@ -29,7 +30,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * entorno, antes de que Flyway o el repositorio de conexiones existan.</p>
  */
 public class VerificacionVariablesDespliegue
-        implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+        implements ApplicationListener<ApplicationEnvironmentPreparedEvent>, Ordered {
 
     /** Perfil en el que la comprobación tiene sentido. */
     static final String PERFIL_VIGILADO = "prod";
@@ -38,6 +39,12 @@ public class VerificacionVariablesDespliegue
     static final String VARIABLE_ALTERNATIVA = "DB_URL";
 
     static final List<String> OBLIGATORIAS = List.of("DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD");
+
+    /** Después del traductor, para ver ya las piezas que él deriva. */
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE + 20;
+    }
 
     @Override
     public void onApplicationEvent(ApplicationEnvironmentPreparedEvent evento) {
@@ -83,7 +90,9 @@ public class VerificacionVariablesDespliegue
                 + "donde no hay ninguna base de datos, y el error aparecería como «connection "
                 + "refused» en vez de como lo que es: configuración ausente. "
                 + "Defínalas en el proveedor con los datos de conexión de la base —en Render, "
-                + "en la pestaña Environment del servicio— o entregue la cadena JDBC completa "
-                + "en " + VARIABLE_ALTERNATIVA + ".";
+                + "en la pestaña Environment del servicio—, o entregue la conexión entera en una "
+                + "sola variable: " + ConexionDesdeUrlDelProveedor.VARIABLE + " con la cadena del "
+                + "proveedor (postgresql://usuario:clave@servidor/base), o "
+                + VARIABLE_ALTERNATIVA + " con la cadena JDBC.";
     }
 }
